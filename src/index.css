@@ -1167,24 +1167,53 @@
    Affects: animated background blobs, column slides, nebula hue-rotate cycle,
    and heavy backdrop-blur layers. Desktop remains fully untouched.
    ──────────────────────────────────────────────────────────────────────────── */
-@media (max-width: 768px) {
-    /* Disable backdrop-filter entirely on mobile to prevent WebKit/Blink bug where 
-       animating transform layers blur the entire container and all its children/text. */
+@media (max-width: 1024px) {
+    /* Disable backdrop-filter entirely on mobile/tablets to prevent rendering lag and browser crashes (Safari/Chrome WebKit bug) */
     .backdrop-blur-3xl,
     .backdrop-blur-2xl,
     .backdrop-blur-xl,
     .backdrop-blur-lg,
     .backdrop-blur-md,
     .backdrop-blur-sm,
-    .backdrop-blur {
+    .backdrop-blur,
+    .glass-panel {
         -webkit-backdrop-filter: none !important;
         backdrop-filter: none !important;
     }
 
-    /* Fallback solid backgrounds for glass containers on mobile so they remain extremely premium and readable */
+    /* Fallback high-contrast solid backgrounds for glass containers on mobile so they remain readable and elegant */
     .bg-\[\#010307\]\/50,
-    .bg-\[\#010307\]\/60 {
-        background-color: rgba(1, 3, 7, 0.94) !important;
+    .bg-\[\#010307\]\/60,
+    .bg-bg-glass-card {
+        background-color: rgba(1, 3, 7, 0.96) !important;
+    }
+
+    /* Hide the complex, GPU-crashing animated background wrapper entirely on mobile/tablet */
+    .animate-nebula-cycle {
+        animation: none !important;
+        background: #030712 !important; /* solid fallback deep dark */
+        filter: none !important;
+    }
+
+    /* Hide the expensive sliding diagonal columns and high-blur elements */
+    .animate-nebula-cycle > div {
+        display: none !important;
+    }
+    
+    /* Hide other glow spheres and disable float animations */
+    .glow-sphere {
+        display: none !important;
+        animation: none !important;
+    }
+    
+    .animate-float,
+    .animate-float-delayed {
+        animation: none !important;
+        transform: none !important;
+    }
+    
+    .pulse-dot::after {
+        animation: none !important;
     }
 }
 
