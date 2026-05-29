@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
 import { Sparkles, ArrowRight, Play, CheckCircle2, Shield, MessageSquare, Calendar, TrendingUp, Sparkle, Mic, Volume2, X, DollarSign, Flame, ChevronLeft, ChevronRight, Brain, Frown, Smile, AlertCircle, Hourglass } from 'lucide-react';
 
@@ -113,16 +113,21 @@ const App = () => {
 
     // ── Mobile Performance Guard ──
     // Detects mobile/touch devices robustly (even if "Request Desktop Site" is active)
-    const isMobile = typeof window !== 'undefined' && (
+    // useMemo ensures this is only computed once on mount, not on every re-render
+    const isMobile = useMemo(() => typeof window !== 'undefined' && (
         /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || 
         window.innerWidth < 1024 || 
         ('ontouchstart' in window) || 
         (navigator.maxTouchPoints > 0)
-    );
+    ), []);
     // Helper: disabled to prevent GPU overload and WebKit rendering bugs (returns empty object)
     const fb = (px) => ({});
     // Helper: returns viewport options (once: true and smaller margin on mobile to prevent elements staying invisible)
     const vp = (marginStr) => isMobile ? { once: true, margin: "-20px 0px" } : { once: false, margin: marginStr };
+
+    // ── Mobile video play state (poster → video on demand) ──
+    const [mobileVideoPlaying, setMobileVideoPlaying] = useState(false);
+    const mobileVideoRef = useRef(null);
 
     const handleMouseMoveCard = (e) => {
         const card = e.currentTarget;
@@ -168,15 +173,24 @@ const App = () => {
         { category: "Lazer", current: 310, max: 300, color: "bg-rose-500" }
     ];
 
-    const { scrollYProgress } = useScroll({
-        target: timelineRef,
-        offset: ["start 60%", "end 85%"]
-    });
-    const scaleY = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
+    // ── Timeline scroll animation (desktop only) ──
+    // On mobile, useScroll adds a continuous scroll listener that saturates the main thread
+    // combined with video decoding — we skip it and show the line at full scale statically.
+    const { scrollYProgress } = useScroll(
+        isMobile
+            ? {} // no target/offset on mobile — hook still called (Rules of Hooks), but inactive
+            : { target: timelineRef, offset: ["start 60%", "end 85%"] }
+    );
+    const scaleY = useSpring(
+        isMobile ? 1 : scrollYProgress,
+        { stiffness: 100, damping: 30, restDelta: 0.001 }
+    );
 
     useEffect(() => {
         let isCancelled = false;
         setSimStep(0);
+        // Reset mobile video state when tab changes
+        setMobileVideoPlaying(false);
 
         // Sync with video audio processing (approx 1.8 seconds)
         const timer = setTimeout(() => {
@@ -251,12 +265,9 @@ const App = () => {
                 }}
             />}
             
-            {/* ── HERO WRAPPER (Restringe o background e glows ao Hero) ── */}
-            <div className="relative overflow-hidden w-full">
-                
-                {/* ── HIGH-FIDELITY REF BACKGROUND (Multi-Column Diagonal Split - Vivid Tech - Hyper Animated) ──── */}
-            {/* Base escura profunda e Wrapper do Ciclo Nebular de Cores */}
-            <div className="absolute inset-0 bg-[#010307] pointer-events-none z-0 overflow-hidden animate-nebula-cycle">
+            {/* ── HIGH-FIDELITY REF BACKGROUND (Multi-Column Diagonal Split - Vivid Tech - Hyper Animated) ──── */}
+            {/* Base escura profunda e Wrapper do Ciclo Nebular de Cores - FIXED FOR ENTIRE PAGE */}
+            <div className="fixed inset-0 bg-[#010307] pointer-events-none z-0 overflow-hidden animate-nebula-cycle">
                 
                 {/* COLUNA 1: Extremo Esquerdo (Deep Royal Blue & Sapphire) */}
                 <div 
@@ -330,6 +341,67 @@ const App = () => {
                 {/* Sutil malha de pontos para adicionar textura tech premium sobre toda a tela */}
                 <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.02)_1px,transparent_1px)] [background-size:40px_40px] pointer-events-none z-0 mix-blend-overlay" />
             </div>
+
+            {/* ── MOBILE AURORA BACKGROUND ──────────────────────────────────────────
+                Controlado por CSS (lg:hidden) — garante que aparece em mobile
+                independente da detecção JS de isMobile. FIXED FOR ENTIRE PAGE.
+                ─────────────────────────────────────────────────────────────────── */}
+            <div className="lg:hidden fixed inset-0 pointer-events-none z-[1] bg-[#010307]">
+
+                {/* Orb 1 — Cyan/Blue grande · topo-esquerda · 7s */}
+                <div style={{
+                    position: 'absolute',
+                    width: '340px', height: '340px',
+                    top: '-100px', left: '-80px',
+                    borderRadius: '50%',
+                    willChange: 'transform, opacity',
+                    background: 'radial-gradient(circle, rgba(6,182,212,0.60) 0%, rgba(29,78,216,0.28) 42%, transparent 70%)',
+                    animation: 'mobile-aurora-1 7s ease-in-out infinite',
+                }} />
+
+                {/* Orb 2 — Amber/Orange · direita-centro · 9s */}
+                <div style={{
+                    position: 'absolute',
+                    width: '280px', height: '280px',
+                    top: '25%', right: '-80px',
+                    borderRadius: '50%',
+                    willChange: 'transform, opacity',
+                    background: 'radial-gradient(circle, rgba(255,167,81,0.58) 0%, rgba(255,226,89,0.22) 45%, transparent 70%)',
+                    animation: 'mobile-aurora-2 9s ease-in-out infinite',
+                }} />
+
+                {/* Orb 3 — Purple · esquerda-baixo · 11s */}
+                <div style={{
+                    position: 'absolute',
+                    width: '300px', height: '300px',
+                    top: '48%', left: '-100px',
+                    borderRadius: '50%',
+                    willChange: 'transform, opacity',
+                    background: 'radial-gradient(circle, rgba(168,85,247,0.55) 0%, rgba(139,92,246,0.20) 45%, transparent 70%)',
+                    animation: 'mobile-aurora-3 11s ease-in-out infinite',
+                }} />
+
+                {/* Orb 4 — Cyan puro · topo-direita · 13s */}
+                <div style={{
+                    position: 'absolute',
+                    width: '220px', height: '220px',
+                    top: '5%', right: '-40px',
+                    borderRadius: '50%',
+                    willChange: 'transform, opacity',
+                    background: 'radial-gradient(circle, rgba(12,242,205,0.50) 0%, rgba(6,182,212,0.18) 47%, transparent 72%)',
+                    animation: 'mobile-aurora-4 13s ease-in-out infinite',
+                }} />
+
+                {/* Malha de pontos sutil — textura tech, estática, sem custo */}
+                <div style={{
+                    position: 'absolute', inset: 0,
+                    backgroundImage: 'radial-gradient(rgba(255,255,255,0.030) 1px, transparent 1px)',
+                    backgroundSize: '30px 30px',
+                }} />
+            </div>
+
+            {/* ── HERO WRAPPER (Restringe o conteúdo do Hero) ── */}
+            <div className="relative overflow-hidden w-full">
 
 
 
@@ -445,22 +517,64 @@ const App = () => {
                             <div className="w-full aspect-video bg-[#010307]/30 relative overflow-hidden flex items-center justify-center">
                                 {/* Glow interno sutil */}
                                 <div className="absolute inset-0 bg-gradient-to-tr from-accent-cyan/5 to-transparent pointer-events-none" />
-                                
-                                <motion.video
-                                    key={situations[activeTab].videoUrl}
-                                    initial={{ opacity: 0, scale: 0.99 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0, scale: 0.99 }}
-                                    transition={{ duration: 0.4, ease: "easeOut" }}
-                                    src={situations[activeTab].videoUrl}
-                                    autoPlay
-                                    muted
-                                    loop
-                                    playsInline
-                                    preload={isMobile ? "metadata" : "auto"}
-                                    className="w-full h-full object-cover"
-                                />
-                                
+
+                                {isMobile ? (
+                                    /* ── MOBILE: Poster estático + play manual ──
+                                       Vídeos MP4 de alta resolução esgotam a memória da WebView em
+                                       iOS/Android quando carregados com autoPlay+loop. O usuário
+                                       aciona o vídeo manualmente, evitando crash. */
+                                    mobileVideoPlaying ? (
+                                        <video
+                                            key={situations[activeTab].videoUrl}
+                                            ref={mobileVideoRef}
+                                            src={situations[activeTab].videoUrl}
+                                            autoPlay
+                                            muted
+                                            loop
+                                            playsInline
+                                            preload="none"
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        /* Poster com botão de play */
+                                        <div className="relative w-full h-full flex items-center justify-center bg-[#010307]/80">
+                                            {/* Gradient de fundo que simula o vídeo */}
+                                            <div className="absolute inset-0 bg-gradient-to-br from-[#010307] via-[#030a14] to-[#010307]" />
+                                            {/* Ícone central do cenário */}
+                                            <div className="relative z-10 flex flex-col items-center gap-4">
+                                                <div className="text-5xl">{situations[activeTab].emoji}</div>
+                                                <p className="text-white/60 text-xs text-center px-4 max-w-[200px] leading-relaxed">
+                                                    {situations[activeTab].tabLabel}
+                                                </p>
+                                                <button
+                                                    onClick={() => setMobileVideoPlaying(true)}
+                                                    className="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-semibold px-5 py-2.5 rounded-full transition-all active:scale-95"
+                                                    aria-label="Reproduzir demonstração"
+                                                >
+                                                    <Play className="w-3.5 h-3.5 fill-white" />
+                                                    Ver demonstração
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )
+                                ) : (
+                                    /* ── DESKTOP: vídeo completo com autoPlay ── */
+                                    <motion.video
+                                        key={situations[activeTab].videoUrl}
+                                        initial={{ opacity: 0, scale: 0.99 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 0.99 }}
+                                        transition={{ duration: 0.4, ease: "easeOut" }}
+                                        src={situations[activeTab].videoUrl}
+                                        autoPlay
+                                        muted
+                                        loop
+                                        playsInline
+                                        preload="auto"
+                                        className="w-full h-full object-cover"
+                                    />
+                                )}
+
                                 {/* Sutil overlay de reflexo de vidro */}
                                 <div className="absolute inset-0 pointer-events-none bg-gradient-to-tr from-white/0 via-white/[0.02] to-white/[0.06]" />
                             </div>

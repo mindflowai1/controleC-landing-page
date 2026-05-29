@@ -1162,6 +1162,41 @@
     }
 }
 
+/* ── Mobile Aurora Background — Transform-only keyframes (GPU compositor safe) ──
+   Uses ONLY transform + opacity. No filter:blur, no backdrop-filter, no box-shadow.
+   These properties run on the compositor thread (off main thread), safe on all
+   iOS/Android WebViews. The soft "glow" look comes from the radial-gradient itself.
+   Translations are large (80–160px) so movement is clearly visible on phone screens.
+   ────────────────────────────────────────────────────────────────────────────── */
+@keyframes mobile-aurora-1 {
+    0%   { transform: translate(0px,    0px)   scale(1.00); opacity: 0.72; }
+    20%  { transform: translate(100px, -60px)  scale(1.20); opacity: 0.90; }
+    45%  { transform: translate(60px,  110px)  scale(0.90); opacity: 0.65; }
+    70%  { transform: translate(-80px,  80px)  scale(1.15); opacity: 0.85; }
+    100% { transform: translate(0px,    0px)   scale(1.00); opacity: 0.72; }
+}
+@keyframes mobile-aurora-2 {
+    0%   { transform: translate(0px,   0px)   scale(1.00); opacity: 0.62; }
+    25%  { transform: translate(-110px, 70px)  scale(1.18); opacity: 0.82; }
+    55%  { transform: translate(-60px, -90px)  scale(0.88); opacity: 0.55; }
+    80%  { transform: translate(80px,  -50px)  scale(1.12); opacity: 0.78; }
+    100% { transform: translate(0px,   0px)   scale(1.00); opacity: 0.62; }
+}
+@keyframes mobile-aurora-3 {
+    0%   { transform: translate(0px,   0px)   scale(1.00); opacity: 0.52; }
+    30%  { transform: translate(120px, -80px)  scale(1.22); opacity: 0.75; }
+    60%  { transform: translate(50px,  130px)  scale(0.85); opacity: 0.45; }
+    85%  { transform: translate(-90px,  60px)  scale(1.10); opacity: 0.70; }
+    100% { transform: translate(0px,   0px)   scale(1.00); opacity: 0.52; }
+}
+@keyframes mobile-aurora-4 {
+    0%   { transform: translate(0px,   0px)   scale(1.00); opacity: 0.48; }
+    35%  { transform: translate(-90px, -110px) scale(1.25); opacity: 0.70; }
+    65%  { transform: translate(110px,  -40px) scale(0.80); opacity: 0.40; }
+    90%  { transform: translate(40px,   90px)  scale(1.15); opacity: 0.65; }
+    100% { transform: translate(0px,   0px)   scale(1.00); opacity: 0.48; }
+}
+
 /* ── Mobile Performance Guard ──────────────────────────────────────────────────
    Kills GPU-intensive CSS animations on mobile to prevent WebKit/Blink crashes.
    Affects: animated background blobs, column slides, nebula hue-rotate cycle,
@@ -1169,6 +1204,8 @@
    ──────────────────────────────────────────────────────────────────────────── */
 @media (max-width: 1024px) {
     /* Disable backdrop-filter entirely on mobile/tablets to prevent rendering lag and browser crashes (Safari/Chrome WebKit bug) */
+    /* Using attribute selector covers ALL Tailwind variants without listing each one manually */
+    [class*="backdrop-blur"],
     .backdrop-blur-3xl,
     .backdrop-blur-2xl,
     .backdrop-blur-xl,
@@ -1214,6 +1251,20 @@
     
     .pulse-dot::after {
         animation: none !important;
+    }
+
+    /* ── Fix #4: Disable animate-pulse and animate-ping on mobile ──
+       These CSS animations force new GPU compositing layers per element.
+       With 8+ simultaneous instances on mobile they cause layout thrash
+       that compounds the video decoding pressure and crashes the WebView. */
+    .animate-pulse {
+        animation: none !important;
+        opacity: 1 !important;
+    }
+
+    .animate-ping {
+        animation: none !important;
+        opacity: 0 !important; /* hide ping dots which are decorative only */
     }
 }
 
