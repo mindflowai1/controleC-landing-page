@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
-import { Sparkles, ArrowRight, Play, CheckCircle2, Shield, MessageSquare, Calendar, TrendingUp, Sparkle, Mic, Volume2, X, DollarSign, Flame, ChevronLeft, ChevronRight, Brain, Frown, Smile, AlertCircle, Hourglass } from 'lucide-react';
+import { Sparkles, ArrowRight, Play, CheckCircle2, Shield, MessageSquare, Calendar, TrendingUp, Sparkle, Mic, Volume2, X, DollarSign, Flame, ChevronLeft, ChevronRight, Brain, Frown, Smile, AlertCircle, Hourglass, Clock, Grid } from 'lucide-react';
 
 const situations = [
     {
@@ -101,15 +101,66 @@ const situations = [
     }
 ];
 
+const tutorials = [
+    {
+        title: "Agenda",
+        menuTitle: "Agenda",
+        description: "Entenda como funciona a sincronia com o Google Agenda em tempo real.",
+        icon: "📅",
+        videoUrl: "https://player-vz-19ec53c2-073.tv.pandavideo.com.br/embed/?v=f34ce234-1b88-46de-853d-99f708dce428"
+    },
+    {
+        title: "Lista de Tarefas por Projetos",
+        menuTitle: "Tarefas",
+        description: "Entenda como funciona a lista de tarefas, projetos e prazos dentro do Controle-C.",
+        icon: "📋",
+        videoUrl: "https://player-vz-19ec53c2-073.tv.pandavideo.com.br/embed/?v=edefa0e6-3c82-4932-a0eb-d9770a9b93af"
+    },
+    {
+        title: "Rastreador de Hábitos e Rotinas & Gamificação",
+        menuTitle: "Hábitos",
+        description: "Entenda como o controle de hábitos e rotinas é feito dentro do Controle-C e como ele é gamificado e rastreado.",
+        icon: "🔥",
+        videoUrl: "https://player-vz-19ec53c2-073.tv.pandavideo.com.br/embed/?v=dec69694-820c-43ec-b2af-d1d49e71a0e8"
+    },
+    {
+        title: "Controle Financeiro Completo",
+        menuTitle: "Financeiro",
+        description: "Entenda como funcionam todas as funcionalidades de finanças dentro do Controle-C.",
+        icon: "💰",
+        videoUrl: "https://player-vz-19ec53c2-073.tv.pandavideo.com.br/embed/?v=2b7dcaa2-7954-4b05-8f34-3fc3d03d7eca"
+    }
+];
+
 const App = () => {
     const containerRef = useRef(null);
     const timelineRef = useRef(null);
+    const pricingRef = useRef(null);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [activeTab, setActiveTab] = useState(0);
     const [showDemoModal, setShowDemoModal] = useState(false);
     const [simStep, setSimStep] = useState(0); // 0: audio processing, 1: processed/revealed
     const [cardTilt, setCardTilt] = useState({ x: 0, y: 0 });
     const [billingPeriod, setBillingPeriod] = useState('annual');
+    const [showBonusPopup, setShowBonusPopup] = useState(false);
+    const [hasTriggeredPopup, setHasTriggeredPopup] = useState(false);
+    const [activeTutorialTab, setActiveTutorialTab] = useState(0);
+
+    const alternatingWords = useMemo(() => [
+        { text: "agenda", colorClass: "text-[#ffd700]" },
+        { text: "tarefas", colorClass: "text-[#ffd700]" },
+        { text: "finanças", colorClass: "text-[#ffd700]" },
+        { text: "hábitos", colorClass: "text-[#ffd700]" }
+    ], []);
+
+    const [wordIndex, setWordIndex] = useState(0);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setWordIndex((prev) => (prev + 1) % alternatingWords.length);
+        }, 2500);
+        return () => clearInterval(interval);
+    }, [alternatingWords]);
 
     // ── Mobile Performance Guard ──
     // Detects mobile/touch devices robustly (even if "Request Desktop Site" is active)
@@ -146,25 +197,26 @@ const App = () => {
     // States and refs for interactive micro-interfaces in timeline cards
     const [activeFinanceCategory, setActiveFinanceCategory] = useState(null);
     const [tasks, setTasks] = useState([
-        { id: 1, text: "Revisar proposta comercial", completed: true },
-        { id: 2, text: "Lançar custos de alimentação", completed: false },
-        { id: 3, text: "Treinar 40min de cardio", completed: false }
+        { id: 1, project: "Casa", text: "Comprar Airfryer", deadline: "Amanhã", color: "bg-[#ffa751]/10 text-[#ffa751] border-[#ffa751]/20", completed: false },
+        { id: 2, project: "Empresa", text: "Pagar conta de internet do escritório", deadline: "Todo dia 17", color: "bg-[#0cf2cd]/10 text-[#0cf2cd] border-[#0cf2cd]/20", completed: false },
+        { id: 3, project: "Filho", text: "Levar para o pediatra", deadline: "Sem prazo", color: "bg-[#8b5cf6]/10 text-[#8b5cf6] border-[#8b5cf6]/20", completed: false }
     ]);
     const toggleTask = (id) => {
         setTasks(prev => prev.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
     };
 
     const [habitDays, setHabitDays] = useState([
-        { day: "Seg", done: true },
-        { day: "Ter", done: true },
-        { day: "Qua", done: true },
-        { day: "Qui", done: true },
-        { day: "Sex", done: true },
-        { day: "Sáb", done: true },
-        { day: "Dom", done: false }
+        { id: 1, label: "SEG", number: 1, completed: true },
+        { id: 2, label: "TER", number: 2, completed: true },
+        { id: 3, label: "QUA", number: 3, completed: false, isToday: true },
+        { id: 4, label: "QUI", number: 4, completed: false },
+        { id: 5, label: "SEX", number: 5, completed: false },
+        { id: 6, label: "SÁB", number: 6, completed: false },
+        { id: 7, label: "DOM", number: 7, completed: false }
     ]);
-    const toggleHabitDay = (index) => {
-        setHabitDays(prev => prev.map((d, idx) => idx === index ? { ...d, done: !d.done } : d));
+    const [activeHabitTab, setActiveHabitTab] = useState("semanal");
+    const toggleHabitDay = (id) => {
+        setHabitDays(prev => prev.map(d => d.id === id ? { ...d, completed: !d.completed } : d));
     };
 
     const budgetData = [
@@ -212,6 +264,34 @@ const App = () => {
         }, 8000);
         return () => clearInterval(cycleTimer);
     }, [isMobile]);
+
+    // Detect when user is viewing pricing section to trigger the bonus popup after a small delay
+    useEffect(() => {
+        if (hasTriggeredPopup) return;
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const timer = setTimeout(() => {
+                        setShowBonusPopup(true);
+                        setHasTriggeredPopup(true);
+                    }, 5000); // 5 seconds delay
+
+                    return () => clearTimeout(timer);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        if (pricingRef.current) {
+            observer.observe(pricingRef.current);
+        }
+
+        return () => {
+            if (pricingRef.current) {
+                observer.unobserve(pricingRef.current);
+            }
+        };
+    }, [hasTriggeredPopup]);
 
     // High-performance cursor tracking for dynamic background glow spotlight (desktop only)
     useEffect(() => {
@@ -431,9 +511,9 @@ const App = () => {
                             variants={itemVariants}
                             className="font-body-jakarta font-extrabold text-4xl sm:text-5xl md:text-6xl text-white tracking-tight leading-[1.15] mb-4 max-w-4xl premium-text-shadow"
                         >
-                            O único aplicativo que você precisa <br className="hidden sm:block" /> para organizar{' '}
+                            A única ferramenta que você precisa <br className="hidden sm:block" /> para organizar{' '}
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ffe259] to-[#ffa751]">
-                                sua vida.
+                                sua vida inteira.
                             </span>
                         </motion.h1>
 
@@ -442,28 +522,21 @@ const App = () => {
                             variants={itemVariants}
                             className="text-text-muted text-sm sm:text-base lg:text-lg font-normal leading-relaxed max-w-2xl mb-6 premium-subtext-shadow"
                         >
-                            O assistente de IA que vive no seu WhatsApp. Envie um áudio para registrar gastos, agendar compromissos e organizar tarefas. Sem apps complexos.
+                            Do Caos à Ordem. Organize sua agenda, finanças, hábitos e tarefas em um só lugar, de forma simples e dinâmica.
                         </motion.p>
 
                         {/* Centered CTAs */}
                         <motion.div 
                             variants={itemVariants}
-                            className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto"
+                            className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto mb-6"
                         >
                             <a 
                                 href="#precos" 
                                 className="inline-flex items-center justify-center gap-2 bg-white text-bg-space font-semibold text-sm py-3.5 px-8 rounded-full shadow-[0_4px_25px_rgba(255,255,255,0.15)] hover:bg-slate-100 hover:scale-[1.02] active:scale-100 transition-all duration-300 w-full sm:w-auto cursor-pointer"
                             >
-                                Testar Grátis no WhatsApp
+                                Usar agora
                                 <ArrowRight className="w-4 h-4 text-bg-space" />
                             </a>
-                            <button 
-                                onClick={() => setShowDemoModal(true)}
-                                className="inline-flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white font-semibold text-sm py-3.5 px-8 rounded-full border border-border-glass hover:border-white/20 hover:scale-[1.02] active:scale-100 transition-all duration-300 backdrop-blur-md w-full sm:w-auto cursor-pointer"
-                            >
-                                <Play className="w-3.5 h-3.5 fill-white text-white" />
-                                Ver Vídeo Demo
-                            </button>
                         </motion.div>
 
                         {/* Trust Assurances below CTAs */}
@@ -472,15 +545,15 @@ const App = () => {
                             className="mt-4 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-text-muted"
                         >
                             <span className="flex items-center gap-1.5">
-                                <CheckCircle2 className="w-3.5 h-3.5 text-accent-cyan" /> 100% Grátis para testar
+                                <CheckCircle2 className="w-3.5 h-3.5 text-accent-cyan" /> Garantia de Satisfação
                             </span>
                             <span className="hidden sm:inline opacity-30">•</span>
                             <span className="flex items-center gap-1.5">
-                                <Sparkles className="w-3.5 h-3.5 text-accent-cyan" /> Configuração em 1 minuto
+                                <Shield className="w-3.5 h-3.5 text-accent-cyan" /> Computador e Celulares
                             </span>
                             <span className="hidden sm:inline opacity-30">•</span>
                             <span className="flex items-center gap-1.5">
-                                <Shield className="w-3.5 h-3.5 text-accent-cyan" /> Sem necessidade de cartão
+                                <Sparkles className="w-3.5 h-3.5 text-accent-cyan" /> 5 minutos de configuração
                             </span>
                         </motion.div>
 
@@ -505,7 +578,7 @@ const App = () => {
                                     <div className="w-3 h-3 rounded-full bg-[#27c93f]" />
                                 </div>
                                 <div className="px-5 py-1.5 rounded-full bg-[#010307]/50 border border-white/[0.08] text-xs text-text-muted select-none">
-                                    controle-c.com.br
+                                    app.controle-c.com.br
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <span className="w-2 h-2 rounded-full bg-[#25D366] animate-pulse" />
@@ -525,15 +598,15 @@ const App = () => {
                                        aciona o vídeo manualmente, evitando crash. */
                                     mobileVideoPlaying ? (
                                         <video
-                                            key={situations[activeTab].videoUrl}
+                                            key="demo-lp"
                                             ref={mobileVideoRef}
-                                            src={situations[activeTab].videoUrl}
+                                            src="/demo%20lp.mp4"
                                             autoPlay
                                             muted
                                             loop
                                             playsInline
                                             preload="none"
-                                            className="w-full h-full object-cover"
+                                            className="w-full h-full object-contain"
                                         />
                                     ) : (
                                         /* Poster com botão de play */
@@ -560,18 +633,18 @@ const App = () => {
                                 ) : (
                                     /* ── DESKTOP: vídeo completo com autoPlay ── */
                                     <motion.video
-                                        key={situations[activeTab].videoUrl}
+                                        key="demo-lp"
                                         initial={{ opacity: 0, scale: 0.99 }}
                                         animate={{ opacity: 1, scale: 1 }}
                                         exit={{ opacity: 0, scale: 0.99 }}
                                         transition={{ duration: 0.4, ease: "easeOut" }}
-                                        src={situations[activeTab].videoUrl}
+                                        src="/demo%20lp.mp4"
                                         autoPlay
                                         muted
                                         loop
                                         playsInline
                                         preload="auto"
-                                        className="w-full h-full object-cover"
+                                        className="w-full h-full object-contain"
                                     />
                                 )}
 
@@ -646,7 +719,7 @@ const App = () => {
                         transition={{ type: "spring", stiffness: 15, damping: 13, mass: 1.4, delay: 0.3 }}
                         className="text-text-muted text-sm sm:text-base max-w-xl leading-relaxed"
                     >
-                        O assistente de IA recebe e processa suas mensagens de áudio ou texto pelo WhatsApp, organizando sua rotina em segundo plano em menos de 5 segundos.
+                        Entenda todas as funcionalidades. A ferramenta foi pensada para resolver e organizar todas as suas questões pessoais em um só lugar.
                     </motion.p>
                 </div>
 
@@ -695,42 +768,101 @@ const App = () => {
                                 <div className="w-10 h-10 rounded-xl bg-[#ffa751]/10 border border-[#ffa751]/20 flex items-center justify-center text-[#ffa751]">
                                     <DollarSign className="w-5 h-5" />
                                 </div>
-                                <h3 className="text-xl font-bold text-white">Suas Finanças no Automático</h3>
+                                <h3 className="text-xl font-bold text-white">Controle Financeiro na Palma da Mão</h3>
                             </div>
                             <p className="text-text-muted text-sm leading-relaxed mb-6">
-                                Envie um áudio simples como <span className="text-[#ffa751] font-mono italic bg-[#ffa751]/5 px-1.5 py-0.5 rounded">"gastei R$ 45 com janta"</span> e o Controle-C categoriza instantaneamente, atualiza seu orçamento mensal e sinaliza se você estiver perto do limite.
+                                Registre despesas e receitas em qualquer forma de pagamento e planeje gastos para até 24 meses. Crie lembretes recorrentes, exporte extratos em PDF e acompanhe tudo em gráficos.
                             </p>
                             
                             {/* Micro-Interface Interativa de Finanças */}
-                            <div className="bg-[#010307]/60 border border-white/[0.06] rounded-xl p-4 space-y-3">
-                                <div className="flex items-center justify-between text-xs text-text-dimmed">
-                                    <span>Orçamentos do Mês</span>
-                                    <span className="text-[#ffa751] text-[10px] font-bold tracking-wide uppercase animate-pulse">● Live Sync</span>
+                            <div className="bg-[#010307]/60 border border-white/[0.06] rounded-xl p-4 space-y-4">
+                                <div className="flex items-center justify-between text-xs text-text-dimmed pb-2 border-b border-white/[0.04]">
+                                    <span>Transações Recentes</span>
+                                    <span className="text-[#ffa751] text-[9px] font-bold tracking-wide uppercase animate-pulse">● Live Sync</span>
                                 </div>
-                                {budgetData.map((b, i) => (
-                                    <div 
-                                        key={i}
-                                        onMouseEnter={() => setActiveFinanceCategory(i)}
-                                        onMouseLeave={() => setActiveFinanceCategory(null)}
-                                        className="space-y-1.5 cursor-pointer group"
-                                    >
-                                        <div className="flex justify-between text-xs transition-colors group-hover:text-white">
-                                            <span className="text-text-muted font-medium group-hover:text-white">{b.category}</span>
-                                            <span className="text-text-dimmed group-hover:text-[#ffa751]">
-                                                R$ {b.current} <span className="opacity-40">/ R$ {b.max}</span>
-                                            </span>
+                                
+                                {/* 3 transações */}
+                                <div className="space-y-2 select-none">
+                                    <div className="flex items-center justify-between p-2 rounded bg-white/[0.01] border border-white/[0.02] hover:bg-white/[0.03] transition-colors">
+                                        <div className="flex items-center gap-2">
+                                            <span className="w-2 h-2 rounded-full bg-rose-500" />
+                                            <div className="text-left">
+                                                <p className="text-white text-xs font-bold font-body-jakarta">Jantar / Uber Eats</p>
+                                                <p className="text-[9px] text-text-dimmed font-body-jakarta">Alimentação · Débito</p>
+                                            </div>
                                         </div>
-                                        <div className="h-1.5 w-full bg-white/[0.04] rounded-full overflow-hidden border border-white/[0.02]">
-                                            <motion.div 
-                                                initial={{ width: 0 }}
-                                                whileInView={{ width: `${(b.current / b.max) * 100}%` }}
-                                                viewport={{ once: true }}
-                                                transition={{ duration: 1, ease: "easeOut" }}
-                                                className={`h-full ${b.color} rounded-full transition-all duration-300 ${activeFinanceCategory === i ? 'brightness-125 shadow-[0_0_10px_rgba(250,167,81,0.5)]' : ''}`}
+                                        <span className="text-rose-400 text-xs font-mono font-bold">- R$ 89,90</span>
+                                    </div>
+                                    <div className="flex items-center justify-between p-2 rounded bg-white/[0.01] border border-white/[0.02] hover:bg-white/[0.03] transition-colors">
+                                        <div className="flex items-center gap-2">
+                                            <span className="w-2 h-2 rounded-full bg-rose-500" />
+                                            <div className="text-left">
+                                                <p className="text-white text-xs font-bold font-body-jakarta">Assinatura Netflix</p>
+                                                <p className="text-[9px] text-text-dimmed font-body-jakarta">Serviços · Crédito</p>
+                                            </div>
+                                        </div>
+                                        <span className="text-rose-400 text-xs font-mono font-bold">- R$ 55,90</span>
+                                    </div>
+                                    <div className="flex items-center justify-between p-2 rounded bg-white/[0.01] border border-white/[0.02] hover:bg-white/[0.03] transition-colors">
+                                        <div className="flex items-center gap-2">
+                                            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                                            <div className="text-left">
+                                                <p className="text-white text-xs font-bold font-body-jakarta">Pix Recebido</p>
+                                                <p className="text-[9px] text-text-dimmed font-body-jakarta">Receita · Conta Corrente</p>
+                                            </div>
+                                        </div>
+                                        <span className="text-emerald-400 text-xs font-mono font-bold">+ R$ 1.200,00</span>
+                                    </div>
+                                </div>
+
+                                {/* Gráfico Simples */}
+                                <div className="pt-2 select-none">
+                                    <p className="text-[10px] text-text-dimmed mb-3 text-left font-body-jakarta">Evolução do Saldo (Últimos Dias)</p>
+                                    <div className="p-3 bg-white/[0.01] border border-white/[0.04] rounded-lg">
+                                        <svg className="w-full h-16 overflow-visible" viewBox="0 0 300 60">
+                                            <defs>
+                                                <linearGradient id="balance-glow" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="0%" stopColor="#ffa751" stopOpacity="0.25" />
+                                                    <stop offset="100%" stopColor="#ffa751" stopOpacity="0.0" />
+                                                </linearGradient>
+                                            </defs>
+                                            
+                                            {/* Area fill */}
+                                            <path 
+                                                d="M 10 50 L 70 42 L 130 48 L 190 20 L 250 28 L 290 32 L 290 60 L 10 60 Z" 
+                                                fill="url(#balance-glow)" 
                                             />
+                                            
+                                            {/* Line */}
+                                            <motion.path 
+                                                d="M 10 50 L 70 42 L 130 48 L 190 20 L 250 28 L 290 32" 
+                                                fill="none" 
+                                                stroke="#ffa751" 
+                                                strokeWidth="2" 
+                                                strokeLinecap="round"
+                                                initial={{ pathLength: 0 }}
+                                                whileInView={{ pathLength: 1 }}
+                                                viewport={{ once: true }}
+                                                transition={{ duration: 1.2, ease: "easeOut" }}
+                                            />
+                                            
+                                            {/* Grid dots */}
+                                            <circle cx="10" cy="50" r="3" fill="#010307" stroke="#ffa751" strokeWidth="1.5" />
+                                            <circle cx="70" cy="42" r="3" fill="#010307" stroke="#ffa751" strokeWidth="1.5" />
+                                            <circle cx="130" cy="48" r="3" fill="#010307" stroke="#ffa751" strokeWidth="1.5" />
+                                            <circle cx="190" cy="20" r="3" fill="#010307" stroke="#ffa751" strokeWidth="1.5" />
+                                            <circle cx="250" cy="28" r="3" fill="#010307" stroke="#ffa751" strokeWidth="1.5" />
+                                            <circle cx="290" cy="32" r="3" fill="#010307" stroke="#ffa751" strokeWidth="1.5" />
+                                        </svg>
+                                        <div className="flex justify-between text-[8px] text-text-muted font-bold px-1 pt-2 font-mono">
+                                            <span>28 Mai</span>
+                                            <span>29 Mai</span>
+                                            <span>30 Mai</span>
+                                            <span>31 Mai</span>
+                                            <span>Hoje</span>
                                         </div>
                                     </div>
-                                ))}
+                                </div>
                             </div>
                         </motion.div>
                         
@@ -768,45 +900,60 @@ const App = () => {
                                 <div className="w-10 h-10 rounded-xl bg-[#00f0ff]/10 border border-[#00f0ff]/20 flex items-center justify-center text-[#00f0ff]">
                                     <Calendar className="w-5 h-5" />
                                 </div>
-                                <h3 className="text-xl font-bold text-white">Compromissos sem Esforço</h3>
+                                <h3 className="text-xl font-bold text-white">Sua Agenda Integrada</h3>
                             </div>
                             <p className="text-text-muted text-sm leading-relaxed mb-6">
-                                Diga <span className="text-[#00f0ff] font-mono italic bg-[#00f0ff]/5 px-1.5 py-0.5 rounded">"lembrar de ligar para o cliente amanhã às 14h"</span> e o Controle-C agenda diretamente na sua agenda digital. Sem formulários chatos ou aplicativos de gerenciamento complexos.
+                                Conecte sua agenda ao Google Agenda e tenha sincronização em tempo real. Crie e gerencie todos os seus compromissos através do Controle-C.
                             </p>
                             
                             {/* Micro-Interface Interativa de Agenda */}
                             <div className="bg-[#010307]/60 border border-white/[0.06] rounded-xl p-4">
-                                <div className="flex items-center justify-between text-xs text-text-dimmed mb-3">
-                                    <span>Calendário Jarvis</span>
-                                    <span className="text-[#00f0ff] text-[9px] font-bold">Terça-feira, 20 Mai</span>
+                                <div className="flex items-center justify-between gap-3 text-xs text-text-dimmed mb-6 border-b border-white/[0.05] pb-4">
+                                    <span className="text-xs text-white font-bold uppercase tracking-wider select-none font-body-jakarta">
+                                        Seus Compromissos
+                                    </span>
+                                    <button className="px-3 py-1 rounded bg-[#3b82f6] text-white hover:bg-[#2563eb] text-[10px] font-bold shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all">
+                                        + Novo Agendamento
+                                    </button>
                                 </div>
-                                <div className="space-y-2.5">
-                                    <div className="flex gap-3 items-center p-2 rounded-lg bg-white/[0.02] border border-white/[0.04]">
-                                        <div className="text-[10px] text-text-dimmed font-bold w-10 text-right leading-none">
-                                            10:00 <br /><span className="text-[8px] font-normal opacity-50">11:00</span>
+
+                                <div className="space-y-4">
+                                    {/* Dia 1 */}
+                                    <div>
+                                        <div className="text-[#8b5cf6] text-[10px] font-extrabold uppercase tracking-wider mb-2 text-center select-none font-body-jakarta">
+                                            Terça-Feira, 2 De Junho De 2026
                                         </div>
-                                        <div className="w-1 h-8 rounded-full bg-[#ffa751]" />
-                                        <div className="text-xs">
-                                            <p className="font-bold text-white leading-tight">Reunião de Alinhamento</p>
-                                            <p className="text-[10px] text-text-dimmed">Sincronizado</p>
+                                        <div className="relative flex items-center p-2.5 rounded-xl bg-[#090e1a]/80 border border-white/[0.05]">
+                                            <div className="flex flex-col items-center justify-center bg-[#131d35] border border-white/[0.05] rounded-lg px-2.5 py-1 min-w-[50px]">
+                                                <Clock className="w-3.5 h-3.5 text-white/70 mb-0.5" />
+                                                <span className="text-white font-mono text-[9px] font-bold">13:00</span>
+                                            </div>
+                                            <div className="ml-3 text-left">
+                                                <p className="text-white/80 text-xs font-semibold font-body-jakarta">Reunião com Guilherme</p>
+                                            </div>
+                                            <div className="absolute top-2.5 right-2.5 w-1.5 h-1.5 rounded-full bg-slate-500" />
                                         </div>
                                     </div>
-                                    <motion.div 
-                                        whileHover={{ scale: 1.01 }}
-                                        className="flex gap-3 items-center p-2 rounded-lg bg-[#00f0ff]/5 border border-[#00f0ff]/15 shadow-[0_0_15px_rgba(0,240,255,0.04)] cursor-pointer group"
-                                    >
-                                        <div className="text-[10px] text-[#00f0ff] font-bold w-10 text-right leading-none">
-                                            14:00 <br /><span className="text-[8px] font-normal opacity-60">14:15</span>
+
+                                    {/* Dia 2 */}
+                                    <div>
+                                        <div className="text-[#8b5cf6] text-[10px] font-extrabold uppercase tracking-wider mb-2 text-center select-none font-body-jakarta">
+                                            Quarta-Feira, 3 De Junho De 2026
                                         </div>
-                                        <div className="w-1 h-8 rounded-full bg-[#00f0ff] animate-pulse" />
-                                        <div className="text-xs">
-                                            <p className="font-bold text-white group-hover:text-[#00f0ff] transition-colors leading-tight">Ligar para Cliente</p>
-                                            <p className="text-[10px] text-[#00f0ff] font-semibold flex items-center gap-1">
-                                                <span className="w-1 h-1 rounded-full bg-[#00f0ff] animate-ping" />
-                                                Criado via Áudio no WhatsApp
-                                            </p>
-                                        </div>
-                                    </motion.div>
+                                        <motion.div 
+                                            whileHover={{ scale: 1.01 }}
+                                            className="relative flex items-center p-2.5 rounded-xl bg-[#090e1a]/80 border border-white/[0.05] border-l-2 border-l-accent-cyan cursor-pointer transition-all shadow-[0_0_15px_rgba(12,242,205,0.02)]"
+                                        >
+                                            <div className="flex flex-col items-center justify-center bg-[#131d35] border border-white/[0.05] rounded-lg px-2.5 py-1 min-w-[50px]">
+                                                <Clock className="w-3.5 h-3.5 text-accent-cyan mb-0.5" />
+                                                <span className="text-white font-mono text-[9px] font-bold">14:00</span>
+                                            </div>
+                                            <div className="ml-3 text-left">
+                                                <p className="text-white text-xs font-bold font-body-jakarta">Reunião Marketing</p>
+                                            </div>
+                                            <div className="absolute top-2.5 right-2.5 w-1.5 h-1.5 rounded-full bg-accent-cyan animate-pulse" />
+                                        </motion.div>
+                                    </div>
                                 </div>
                             </div>
                         </motion.div>
@@ -845,31 +992,43 @@ const App = () => {
                                 <div className="w-10 h-10 rounded-xl bg-[#a855f7]/10 border border-[#a855f7]/20 flex items-center justify-center text-[#a855f7]">
                                     <Sparkles className="w-5 h-5" />
                                 </div>
-                                <h3 className="text-xl font-bold text-white">Tarefas e Projetos Integrados</h3>
+                                <h3 className="text-xl font-bold text-white">Crie Tarefas por Projetos da sua Vida</h3>
                             </div>
                             <p className="text-text-muted text-sm leading-relaxed mb-6">
-                                Registre pendências, anote insights ou salve links do seu dia. O assistente estrutura suas listas, cria tags para priorizar e lembra você ativamente de concluir as tarefas mais urgentes.
+                                No Controle-C, você pode criar vários projetos simultaneamente, cada um com suas tarefas específicas e prazos definidos para a realização de cada atividade.
                             </p>
                             
                             {/* Micro-Interface Interativa de Tarefas */}
                             <div className="bg-[#010307]/60 border border-white/[0.06] rounded-xl p-4">
-                                <div className="flex items-center justify-between text-xs text-text-dimmed mb-3">
-                                    <span>Lista de Tarefas Ativas</span>
-                                    <span className="text-[10px] text-[#a855f7]">Clique para marcar</span>
+                                <div className="flex items-center justify-between text-xs text-text-dimmed mb-4 border-b border-white/[0.04] pb-2">
+                                    <span>Lista de Tarefas por Projeto</span>
+                                    <span className="text-[10px] text-[#a855f7]">Clique para concluir</span>
                                 </div>
-                                <div className="space-y-2">
+                                <div className="space-y-3 select-none">
                                     {tasks.map((task) => (
                                         <div 
                                             key={task.id}
                                             onClick={() => toggleTask(task.id)}
-                                            className="flex items-center gap-2.5 p-2 rounded bg-white/[0.01] hover:bg-white/[0.03] border border-white/[0.02] cursor-pointer transition-colors group"
+                                            className="flex flex-col gap-2 p-3 rounded-xl bg-white/[0.01] hover:bg-white/[0.03] border border-white/[0.02] hover:border-white/[0.06] cursor-pointer transition-all duration-300 group"
                                         >
-                                            <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${task.completed ? 'bg-[#a855f7] border-[#a855f7]' : 'border-white/20 group-hover:border-[#a855f7]'}`}>
-                                                {task.completed && <CheckCircle2 className="w-3 h-3 text-white" />}
+                                            {/* Tag do Projeto e Checkbox */}
+                                            <div className="flex items-center justify-between">
+                                                <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full border ${task.color} select-none`}>
+                                                    Projeto: {task.project}
+                                                </span>
+                                                <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${task.completed ? 'bg-[#a855f7] border-[#a855f7]' : 'border-white/20 group-hover:border-[#a855f7]'}`}>
+                                                    {task.completed && <CheckCircle2 className="w-3 h-3 text-white" />}
+                                                </div>
                                             </div>
-                                            <span className={`text-xs transition-all ${task.completed ? 'line-through text-text-dimmed opacity-60' : 'text-white'}`}>
+                                            {/* Texto da Tarefa */}
+                                            <span className={`text-xs font-bold font-body-jakarta transition-all ${task.completed ? 'line-through text-text-dimmed opacity-60' : 'text-white'}`}>
                                                 {task.text}
                                             </span>
+                                            {/* Prazo */}
+                                            <div className="flex items-center gap-1.5 text-[9px] text-text-dimmed font-body-jakarta">
+                                                <Calendar className="w-3.5 h-3.5 opacity-60" />
+                                                <span>Prazo: {task.deadline}</span>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
@@ -910,38 +1069,117 @@ const App = () => {
                                 <div className="w-10 h-10 rounded-xl bg-[#f43f5e]/10 border border-[#f43f5e]/20 flex items-center justify-center text-[#f43f5e]">
                                     <Flame className="w-5 h-5 animate-pulse" />
                                 </div>
-                                <h3 className="text-xl font-bold text-white">Hábitos Consistentes</h3>
+                                <h3 className="text-xl font-bold text-white">Gamifique seus Hábitos</h3>
                             </div>
                             <p className="text-text-muted text-sm leading-relaxed mb-6">
-                                Acompanhe sua disciplina diária. Envie um áudio rápido confirmando o treino ou a leitura do dia e veja seus marcadores de consistência se preencherem instantaneamente, mantendo sua chama ativa.
+                                Acompanhe sua disciplina diária. Registre e cumpra seus hábitos no Controle-C. Gamifique sua performance, evolua e acompanhe seu histórico semanal e mensal.
                             </p>
                             
                             {/* Micro-Interface Interativa de Hábitos */}
-                            <div className="bg-[#010307]/60 border border-white/[0.06] rounded-xl p-4">
-                                <div className="flex items-center justify-between text-xs text-text-dimmed mb-3">
-                                    <span>Streak Semanal de Hábitos</span>
-                                    <span className="text-[#f43f5e] font-bold text-[10px] flex items-center gap-0.5">
-                                        <Flame className="w-3.5 h-3.5 text-[#f43f5e]" /> 🔥 6 DIAS ATIVOS
-                                    </span>
+                            <div className="bg-[#0b1329] border border-white/[0.08] rounded-2xl p-5 shadow-2xl relative select-none">
+                                {/* Botão Fechar X no canto superior direito */}
+                                <button className="absolute top-4 right-4 text-white/40 hover:text-white transition-colors">
+                                    <X className="w-4 h-4" />
+                                </button>
+
+                                {/* Cabeçalho do Hábito (Academia) */}
+                                <div className="flex items-center gap-3">
+                                    {/* Ícone com Sparkles e Ponto de Status */}
+                                    <div className="relative w-12 h-12 rounded-2xl bg-[#111e38] border border-white/[0.08] flex items-center justify-center text-[#ffa751]">
+                                        {/* Ponto Ciano Piscante / Brilhante */}
+                                        <span className="absolute -top-1 -left-1 w-2.5 h-2.5 rounded-full bg-[#00c286] shadow-[0_0_8px_#00c286] border border-[#0b1329]" />
+                                        <Sparkles className="w-6 h-6 text-[#ffa751]" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-xl font-bold text-white leading-tight">Academia</h4>
+                                        <p className="text-xs text-text-dimmed mt-0.5 font-medium">Desde 04/05/2026</p>
+                                    </div>
                                 </div>
-                                
-                                <div className="grid grid-cols-7 gap-2.5">
-                                    {habitDays.map((h, i) => (
-                                        <div 
-                                            key={i}
-                                            onClick={() => toggleHabitDay(i)}
-                                            className="flex flex-col items-center gap-1 cursor-pointer group"
+
+                                {/* Seletor de Abas (Vista Semanal / Vista Mensal) */}
+                                <div className="flex bg-[#070d1e] rounded-xl p-1 mt-5 mb-5 border border-white/[0.04]">
+                                    <button 
+                                        type="button"
+                                        onClick={() => setActiveHabitTab("semanal")}
+                                        className={`flex-1 py-2 text-center text-xs font-semibold rounded-lg transition-all duration-300 ${activeHabitTab === "semanal" ? 'bg-[#00c286] text-white shadow-[0_4px_12px_rgba(0,194,134,0.15)] font-bold' : 'text-text-muted hover:text-white'}`}
+                                    >
+                                        Vista Semanal
+                                    </button>
+                                    <button 
+                                        type="button"
+                                        onClick={() => setActiveHabitTab("mensal")}
+                                        className={`flex-1 py-2 text-center text-xs font-semibold rounded-lg transition-all duration-300 ${activeHabitTab === "mensal" ? 'bg-[#00c286] text-white shadow-[0_4px_12px_rgba(0,194,134,0.15)] font-bold' : 'text-text-muted hover:text-white'}`}
+                                    >
+                                        Vista Mensal
+                                    </button>
+                                </div>
+
+                                {/* Conteúdo Conforme Aba Ativa */}
+                                <AnimatePresence mode="wait">
+                                    {activeHabitTab === "semanal" ? (
+                                        <motion.div 
+                                            key="semanal"
+                                            initial={{ opacity: 0, y: 5 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -5 }}
+                                            transition={{ duration: 0.2 }}
+                                            className="grid grid-cols-7 gap-2"
                                         >
-                                            <span className="text-[9px] text-text-dimmed group-hover:text-white transition-colors">{h.day}</span>
-                                            <motion.div 
-                                                whileHover={{ scale: 1.1 }}
-                                                className={`w-7.5 h-7.5 rounded-lg border flex items-center justify-center text-xs font-bold transition-all ${h.done ? 'bg-[#f43f5e]/10 border-[#f43f5e] text-[#f43f5e] shadow-[0_0_10px_rgba(244,63,94,0.15)]' : 'border-white/10 text-text-dimmed hover:border-[#f43f5e]/50'}`}
-                                            >
-                                                {h.done ? "🔥" : "✓"}
-                                            </motion.div>
-                                        </div>
-                                    ))}
-                                </div>
+                                            {habitDays.map((h) => (
+                                                <div 
+                                                    key={h.id}
+                                                    onClick={() => toggleHabitDay(h.id)}
+                                                    className="flex flex-col items-center gap-1.5 cursor-pointer group"
+                                                >
+                                                    <span className="text-[10px] font-bold text-text-dimmed group-hover:text-white transition-colors">{h.label}</span>
+                                                    <motion.div 
+                                                        whileHover={{ scale: 1.05 }}
+                                                        whileTap={{ scale: 0.95 }}
+                                                        className={`w-full aspect-square rounded-xl flex items-center justify-center text-sm font-bold transition-all border ${
+                                                            h.completed 
+                                                                ? 'bg-[#00c286] border-[#00c286] text-[#07120e] shadow-[0_0_12px_rgba(0,194,134,0.25)]' 
+                                                                : h.isToday 
+                                                                    ? 'border-white bg-[#0e172c] text-white' 
+                                                                    : 'bg-[#0d1527] border-white/[0.04] text-text-dimmed hover:border-white/10'
+                                                        }`}
+                                                    >
+                                                        {h.number}
+                                                    </motion.div>
+                                                </div>
+                                            ))}
+                                        </motion.div>
+                                    ) : (
+                                        <motion.div 
+                                            key="mensal"
+                                            initial={{ opacity: 0, y: 5 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -5 }}
+                                            transition={{ duration: 0.2 }}
+                                            className="grid grid-cols-7 gap-1.5 max-h-[140px] overflow-y-auto pr-0.5"
+                                        >
+                                            {[...Array(30)].map((_, index) => {
+                                                const dayNum = index + 1;
+                                                const isCompleted = dayNum <= 15;
+                                                const isCurrent = dayNum === 16;
+                                                return (
+                                                    <motion.div
+                                                        key={index}
+                                                        whileHover={{ scale: 1.05 }}
+                                                        className={`aspect-square rounded-lg flex items-center justify-center text-[9px] font-bold transition-all border ${
+                                                            isCompleted 
+                                                                ? 'bg-[#00c286]/80 border-[#00c286]/20 text-[#07120e] shadow-[0_0_6px_rgba(0,194,134,0.1)]' 
+                                                                : isCurrent 
+                                                                    ? 'border-white bg-[#0e172c] text-white' 
+                                                                    : 'bg-[#0d1527] border-white/[0.04] text-text-dimmed'
+                                                        }`}
+                                                    >
+                                                        {dayNum}
+                                                    </motion.div>
+                                                );
+                                            })}
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </div>
                         </motion.div>
                         
@@ -984,7 +1222,7 @@ const App = () => {
                         transition={{ type: "spring", stiffness: 15, damping: 13, mass: 1.4, delay: 0.3 }}
                         className="text-text-muted text-sm sm:text-base max-w-2xl leading-relaxed"
                     >
-                        Use a tela cheia no escritório para planejar sua semana e o aplicativo mobile na rua para registros rápidos de gastos, hábitos e tarefas.
+                        Use a tela cheia no computador para planejar sua semana e o celular na rua para atualizar seu processo em tempo real.
                     </motion.p>
                 </div>
 
@@ -1020,7 +1258,7 @@ const App = () => {
                             {/* Conteúdo da Tela */}
                             <div className="aspect-[1.65] w-full bg-[#030712]/98 relative overflow-hidden">
                                 <img 
-                                    src="/dashboard_desktop_v2.png" 
+                                    src="/dashboard_desktop.png" 
                                     alt="Controle-C Desktop Dashboard" 
                                     className="w-full h-full object-cover"
                                 />
@@ -1056,7 +1294,7 @@ const App = () => {
                             {/* Tela do Telefone */}
                             <div className="rounded-[28px] overflow-hidden bg-[#030712] aspect-[547/767] w-full border border-white/[0.04] relative select-none">
                                 <img 
-                                    src="/dashboard_mobile_v2.png" 
+                                    src="/dashboard_mobile.png" 
                                     alt="Controle-C Mobile Dashboard" 
                                     className="w-full h-full object-cover"
                                 />
@@ -1074,7 +1312,7 @@ const App = () => {
 
                             <div className="rounded-[26px] overflow-hidden bg-[#030712] aspect-[547/767] w-full border border-white/[0.04] relative">
                                 <img 
-                                    src="/dashboard_mobile_v2.png" 
+                                    src="/dashboard_mobile.png" 
                                     alt="Controle-C Mobile Dashboard" 
                                     className="w-full h-full object-cover"
                                 />
@@ -1120,7 +1358,7 @@ const App = () => {
                         transition={{ type: "spring", stiffness: 15, damping: 13, mass: 1.4, delay: 0.3 }}
                         className="text-text-muted text-sm sm:text-base max-w-xl mx-auto leading-relaxed"
                     >
-                        Uma vida inteira de desorganização consome energia silenciosamente. Veja o contraste de delegar toda a fricção operacional para um sistema tátil.
+                        Uma vida desorganizada consome sua energia aos poucos. Veja a diferença entre viver no caos e ter o controle com uma ferramenta integrada e única.
                     </motion.p>
                 </div>
 
@@ -1311,7 +1549,7 @@ const App = () => {
             `}</style>
 
             {/* ── SEÇÃO: PASSE LIVRE PARA O CONTROLE (PORTAL DE ACESSO HOLOGRÁFICO) ── */}
-            <section id="precos" className="relative py-24 md:py-28 z-10 w-full max-w-5xl mx-auto px-6 overflow-hidden">
+            <section ref={pricingRef} id="precos" className="relative py-24 md:py-28 z-10 w-full max-w-5xl mx-auto px-6 overflow-hidden">
                 {/* Atmosfera de Luz de Fundo (Tech Space Glows) */}
                 <div className="absolute right-[-10%] top-1/4 w-[400px] h-[400px] rounded-full bg-[#0cf2cd]/4 blur-[130px] pointer-events-none z-0" />
                 <div className="absolute left-[-10%] bottom-1/4 w-[400px] h-[400px] rounded-full bg-[#8b5cf6]/4 blur-[130px] pointer-events-none z-0" />
@@ -1336,7 +1574,7 @@ const App = () => {
                         transition={{ type: "spring", stiffness: 15, damping: 13, mass: 1.4, delay: 0.15 }}
                         className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight mb-4 premium-text-shadow font-body-jakarta"
                     >
-                        Sua rotina. Redesenhada.
+                        Sua rotina redesenhada e consistente
                     </motion.h2>
                     
                     <motion.p
@@ -1346,7 +1584,7 @@ const App = () => {
                         transition={{ type: "spring", stiffness: 15, damping: 13, mass: 1.4, delay: 0.3 }}
                         className="text-text-muted text-sm sm:text-base leading-relaxed max-w-2xl mx-auto"
                     >
-                        O Controle-C não é apenas mais um aplicativo de tarefas. É um sistema completo e invisível que trabalha para você a partir do seu WhatsApp. Escolha o seu passe de acesso abaixo.
+                        O Controle-C não é apenas mais uma ferramenta de organização. É um sistema completo e invisível que trabalha para você. Escolha o seu plano abaixo.
                     </motion.p>
                 </div>
 
@@ -1360,36 +1598,40 @@ const App = () => {
                             
                             {[
                                 {
-                                    highlight: "Controle de Finanças por Áudio",
-                                    desc: "Envie áudios rápidos de 3 segundos no WhatsApp para registrar gastos e despesas em débito, crédito ou dinheiro instantaneamente."
-                                },
-                                {
-                                    highlight: "Planejamento Financeiro Ativo",
-                                    desc: "Defina limites mensais de gastos e orçamentos por categorias inteligentes para economizar sem tocar em uma única planilha."
-                                },
-                                {
-                                    highlight: "Lembrete Inteligente de Contas",
-                                    desc: "Chega de juros. O Controle-C monitora e lembra você ativamente antes do vencimento dos seus boletos e despesas recorrentes."
+                                    highlight: "Controle Total de Agenda",
+                                    desc: "Vincule o Google Agenda e acompanhe seus compromissos em tempo real. Crie e edite eventos, configure reuniões e adicione descrições ou locais."
                                 },
                                 {
                                     highlight: "Listas de Tarefas por Projetos",
-                                    desc: "Crie listas temáticas, priorize suas tarefas diárias e organize fluxos de trabalho diretamente pelo chat."
+                                    desc: "Crie listas por projetos, defina prazos para priorizar suas tarefas diárias e organize seu fluxo de trabalho todos os dias."
                                 },
                                 {
-                                    highlight: "Rastreador de Hábitos & Streaks",
-                                    desc: "Consolide sua rotina de exercícios, leitura ou estudos com streaks visuais de progresso (🔥) e lembretes diários leves."
+                                    highlight: "Rastreador de Hábitos e Rotinas com Gamificação",
+                                    desc: "Consolide hábitos e rotinas importantes para você. Acompanhe seu progresso na semana e no mês com gamificação em tempo real."
                                 },
                                 {
-                                    highlight: "Sincronização com Google Agenda",
-                                    desc: "Seus compromissos criados no WhatsApp entram automaticamente e em tempo real no seu calendário oficial da Google."
+                                    highlight: "Controle Financeiro Completo",
+                                    desc: "Registre receitas e despesas em todas as formas de pagamento (Pix, dinheiro, débito e crédito) e planeje seus gastos para até 24 meses."
+                                },
+                                {
+                                    highlight: "Limites Mensais",
+                                    desc: "Defina limites de gastos mensais e orçamentos por categorias inteligentes para economizar sem precisar de planilhas."
+                                },
+                                {
+                                    highlight: "Lembrete Inteligente de Contas",
+                                    desc: "Evite juros e atrasos. O sistema monitora e lembra você ativamente antes do vencimento de boletos e contas recorrentes."
+                                },
+                                {
+                                    highlight: "Gráficos Financeiros e Comparativos",
+                                    desc: "Filtre seus dados por período para comparar receitas e despesas de forma visual por meio de gráficos e relatórios comparativos."
                                 },
                                 {
                                     highlight: "Painel Web 360° Exclusivo",
-                                    desc: "Acesse uma interface web espetacular, limpa e responsiva para ver toda a sua vida organizada de forma consolidada."
+                                    desc: "Acesse uma interface espetacular, limpa e responsiva para computador e celular para ver toda a sua vida organizada de forma consolidada."
                                 },
                                 {
-                                    highlight: "Toda a sua Vida Organizada",
-                                    desc: "Centralize finanças, compromissos, tarefas e hábitos em um único ecossistema invisível, prático e livre de fricção."
+                                    highlight: "Controle-C: Toda a sua Vida Organizada",
+                                    desc: "Centralize suas finanças, compromissos, tarefas e hábitos em um ecossistema invisível, prático e totalmente livre de problemas."
                                 }
                             ].map((item, idx) => (
                                 <motion.div 
@@ -1435,12 +1677,22 @@ const App = () => {
                                 {/* Glow de destaque interno metálico */}
                                 <div className="absolute -right-20 -top-20 w-44 h-44 rounded-full bg-[#0cf2cd]/6 blur-[80px] pointer-events-none" />
 
-                                {/* Tag de Acesso e Versão */}
+                                {/* Tag de Acesso */}
                                 <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/[0.04] relative z-10">
-                                    <span className="text-[9px] text-[#0cf2cd] font-bold uppercase tracking-wider bg-[#0cf2cd]/8 px-2.5 py-1 rounded-full border border-[#0cf2cd]/20 animate-pulse">
-                                        {billingPeriod === 'annual' ? 'LICENÇA ANUAL COMPLETA' : 'ASSINATURA MENSAL'}
-                                    </span>
-                                    <span className="text-[10px] text-text-dimmed font-bold tracking-widest uppercase opacity-60">CONTROLE-C V2.0</span>
+                                    {billingPeriod === 'annual' ? (
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[9px] text-[#0cf2cd] font-bold uppercase tracking-wider bg-[#0cf2cd]/8 px-2.5 py-1 rounded-full border border-[#0cf2cd]/20 animate-pulse">
+                                                LICENÇA ANUAL COMPLETA
+                                            </span>
+                                            <span className="text-[9px] text-white font-black uppercase tracking-wider bg-purple-600 px-2.5 py-1 rounded-full border border-purple-500 shadow-[0_0_12px_rgba(147,51,234,0.45)]">
+                                                ★ RECOMENDADO
+                                            </span>
+                                        </div>
+                                    ) : (
+                                        <span className="text-[9px] text-[#0cf2cd] font-bold uppercase tracking-wider bg-[#0cf2cd]/8 px-2.5 py-1 rounded-full border border-[#0cf2cd]/20">
+                                            ASSINATURA MENSAL
+                                        </span>
+                                    )}
                                 </div>
 
                                 {/* Seletor de Planos (Mensal vs Anual) */}
@@ -1469,17 +1721,18 @@ const App = () => {
                                             <p className="text-[10px] text-text-muted/60 line-through font-semibold tracking-wide uppercase mb-1">De R$ 99,90/mês</p>
                                             <p className="text-[11px] text-text-dimmed font-bold uppercase tracking-wider mb-2.5">Por apenas</p>
                                             
-                                            <div className="flex flex-col relative leading-none">
+                                            <div className="flex flex-col relative leading-none text-left">
                                                 {/* Giant elegant Serif display block for numbers */}
+                                                <span className="text-lg sm:text-2xl font-bold text-white/70 tracking-normal mb-1">12x</span>
                                                 <span className="text-5xl sm:text-6xl font-black text-white tracking-tighter premium-text-shadow font-display">
-                                                    12x <span className="text-[26px] sm:text-[34px] font-extrabold tracking-normal">R$</span> 61,69
+                                                    <span className="text-[26px] sm:text-[34px] font-extrabold tracking-normal mr-1">R$</span>61,69
                                                 </span>
                                             </div>
                                             <p className="text-[10px] text-[#0cf2cd] font-semibold mt-3 select-none uppercase tracking-wider">Ou R$ 600,00 à vista (Economize 37%)</p>
                                         </>
                                     ) : (
                                         <>
-                                            <p className="text-[10px] text-text-muted/60 line-through font-semibold tracking-wide uppercase mb-1 opacity-0">De R$ 99,90/mês</p>
+                                            <p className="text-[10px] text-text-muted/60 line-through font-semibold tracking-wide uppercase mb-1">De R$ 120,00/mês</p>
                                             <p className="text-[11px] text-text-dimmed font-bold uppercase tracking-wider mb-2.5">Por apenas</p>
                                             
                                             <div className="flex flex-col relative leading-none">
@@ -1493,12 +1746,22 @@ const App = () => {
                                     )}
                                 </div>
 
-                                <p className="text-text-muted text-[10.5px] leading-relaxed text-left mb-8 relative z-10 border-l border-white/[0.08] pl-3 italic">
+                                <p className="text-text-muted text-[10.5px] leading-relaxed text-left mb-6 relative z-10 border-l border-white/[0.08] pl-3 italic">
                                     {billingPeriod === 'annual' 
-                                        ? "Equivale a míseros R$ 1,66 por dia. Menos que um único café expresso por semana para colocar a sua mente no controle absoluto."
-                                        : "Equivale a R$ 2,66 por dia. Menos que um refrigerante por semana para colocar toda a sua vida organizada de forma imediata."
+                                        ? "Equivalente a R$ 2,05 por dia. Menos que um único café expresso por dia para colocar a sua mente e sua vida no controle absoluto."
+                                        : "Equivalente a R$ 2,67 por dia. Menos que um único café expresso por dia para colocar a sua mente e sua vida no controle absoluto."
                                     }
                                 </p>
+
+                                {/* 🎁 Destaque de Bônus da Reunião com Consultor */}
+                                <div className="relative z-10 mb-6 bg-gradient-to-r from-[#0cf2cd]/10 to-[#8b5cf6]/10 border border-[#0cf2cd]/20 rounded-2xl p-4 text-left shadow-[0_4px_20px_rgba(12,242,205,0.05)]">
+                                    <div className="absolute top-[-8px] left-4 bg-purple-600 text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider border border-purple-500 shadow-[0_0_8px_rgba(147,51,234,0.4)]">
+                                        BÔNUS INCLUSO 🎁
+                                    </div>
+                                    <p className="text-[11.5px] sm:text-xs text-white leading-relaxed mt-1 font-body-jakarta">
+                                        Assinando agora, você receberá uma <strong className="text-[#0cf2cd]">reunião com o consultor do Controle-C</strong> para fazer as configurações necessárias e te instruir.
+                                    </p>
+                                </div>
 
                                 {/* Botão de Ignição e Disparo Cibernético (CTA Máximo) */}
                                 <div className="relative z-10 w-full mb-6">
@@ -1514,17 +1777,17 @@ const App = () => {
                                 </div>
 
                                 {/* Selos de Segurança e Confiança Premium */}
-                                <div className="space-y-2.5 border-t border-white/[0.04] pt-5 relative z-10 text-left">
-                                    <div className="flex items-center gap-2.5 text-text-dimmed text-[9.5px] font-semibold">
-                                        <span className="text-[#0cf2cd]">✓</span>
+                                <div className="space-y-2 pt-5 border-t border-white/[0.04] relative z-10 text-left">
+                                    <div className="flex items-center gap-2 text-text-dimmed text-[10px] font-semibold">
+                                        <span>✅</span>
                                         <span>Garantia de Satisfação de 7 dias</span>
                                     </div>
-                                    <div className="flex items-center gap-2.5 text-text-dimmed text-[9.5px] font-semibold">
-                                        <span className="text-[#0cf2cd]">✓</span>
-                                        <span>Acesso imediato e direto no seu WhatsApp</span>
+                                    <div className="flex items-center gap-2 text-text-dimmed text-[10px] font-semibold">
+                                        <span>✅</span>
+                                        <span>Acesso Imediato após a assinatura</span>
                                     </div>
-                                    <div className="flex items-center gap-2.5 text-text-dimmed text-[9.5px] font-semibold">
-                                        <span className="text-[#0cf2cd]">✓</span>
+                                    <div className="flex items-center gap-2 text-text-dimmed text-[10px] font-semibold">
+                                        <span>✅</span>
                                         <span>Dados 100% criptografados e seguros</span>
                                     </div>
                                 </div>
@@ -1534,6 +1797,119 @@ const App = () => {
 
                 </div>
             </section>
+
+            {/* ── SEÇÃO: VIDEO TUTORIAIS / DÚVIDAS DAS FUNCIONALIDADES ── */}
+            <section id="tutoriais" className="relative py-24 md:py-28 z-10 w-full max-w-5xl mx-auto px-6 overflow-hidden">
+                {/* Glows de Fundo */}
+                <div className="absolute left-[-10%] top-1/3 w-[350px] h-[350px] rounded-full bg-[#8b5cf6]/4 blur-[120px] pointer-events-none z-0" />
+                <div className="absolute right-[-10%] bottom-1/3 w-[350px] h-[350px] rounded-full bg-[#0cf2cd]/4 blur-[120px] pointer-events-none z-0" />
+
+                {/* Header */}
+                <div className="text-center mb-16 flex flex-col items-center relative z-10">
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/[0.08] bg-white/[0.02] text-xs font-semibold uppercase tracking-wider text-purple-400 mb-4 backdrop-blur-md">
+                        <span>Dúvidas Frequentes</span>
+                    </div>
+                    <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight mb-4 premium-text-shadow font-body-jakarta">
+                        Possui dúvidas sobre as funcionalidades?
+                    </h2>
+                    <p className="text-text-muted text-sm sm:text-base leading-relaxed max-w-2xl mx-auto">
+                        Entenda um pouco mais do que tem dentro do Controle-C através de algumas vídeo aulas do nosso consultor.
+                    </p>
+                </div>
+
+                {/* Horizontal Premium Navigation Menu */}
+                <div className="flex overflow-x-auto lg:justify-center items-center gap-4 pb-6 scrollbar-none w-full max-w-4xl mx-auto mb-6 relative z-10 px-1">
+                    {tutorials.map((tutorial, idx) => (
+                        <button
+                            key={idx}
+                            onClick={() => setActiveTutorialTab(idx)}
+                            className={`flex items-center gap-3 px-5 py-3.5 rounded-2xl border transition-all duration-300 cursor-pointer ${
+                                activeTutorialTab === idx
+                                    ? 'bg-[#0cf2cd]/10 border-[#0cf2cd]/40 text-[#0cf2cd] shadow-[0_0_20px_rgba(12,242,205,0.08)]'
+                                    : 'bg-[#0b0f19]/80 border-white/[0.05] text-text-muted hover:text-white hover:border-white/[0.12]'
+                            }`}
+                        >
+                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 border ${
+                                activeTutorialTab === idx
+                                    ? 'bg-[#0cf2cd]/15 border-[#0cf2cd]/30 text-[#0cf2cd]'
+                                    : 'bg-white/[0.02] border-white/[0.08] text-text-muted'
+                            }`}>
+                                {(() => {
+                                    const Icon = [Calendar, CheckCircle2, Flame, DollarSign][idx];
+                                    return <Icon className="w-4 h-4" />;
+                                })()}
+                            </div>
+                            <div className="text-left leading-tight">
+                                <span className="text-xs sm:text-sm font-bold tracking-tight block font-display">
+                                    {tutorial.menuTitle}
+                                </span>
+                            </div>
+                        </button>
+                    ))}
+                </div>
+
+                {/* Centered Active Tab Description */}
+                <p className="text-center text-text-muted text-xs sm:text-sm max-w-xl mx-auto mb-10 min-h-[40px] relative z-10 leading-relaxed px-4">
+                    {tutorials[activeTutorialTab]?.description}
+                </p>
+
+                {/* Centered Premium Mockup for Walkthrough Video */}
+                <div className="w-full max-w-3xl mx-auto bg-[#010307]/60 border border-white/[0.08] rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] overflow-hidden mb-12 relative z-10">
+                    {/* Browser Mockup Top Bar */}
+                    <div className="flex items-center justify-between px-5 py-3 border-b border-white/[0.06] bg-white/[0.01]">
+                        <div className="flex gap-2">
+                            <div className="w-2.5 h-2.5 rounded-full bg-[#ff5f56]" />
+                            <div className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]" />
+                            <div className="w-2.5 h-2.5 rounded-full bg-[#27c93f]" />
+                        </div>
+                        <div className="px-4 py-1 rounded-full bg-[#010307]/50 border border-white/[0.08] text-[10px] text-text-muted select-none font-display">
+                            Configurando {tutorials[activeTutorialTab]?.title || 'Controle-C'}
+                        </div>
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#0cf2cd]/60 animate-pulse" />
+                    </div>
+                    {/* Active Video Stream */}
+                    <div className="aspect-video w-full bg-[#010307]/40 relative overflow-hidden">
+                        <iframe
+                            id={`panda-${tutorials[activeTutorialTab]?.videoUrl.split('?v=')[1]}`}
+                            src={tutorials[activeTutorialTab]?.videoUrl}
+                            title={tutorials[activeTutorialTab]?.title}
+                            style={{ border: 'none' }}
+                            allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture"
+                            allowFullScreen={true}
+                            className="w-full h-full border-0"
+                            loading="lazy"
+                        ></iframe>
+                    </div>
+                </div>
+
+                {/* Section Footer CTA */}
+                <div className="text-center relative z-10 flex flex-col items-center">
+                    <button
+                        onClick={() => pricingRef.current?.scrollIntoView({ behavior: 'smooth' })}
+                        className="inline-flex items-center justify-center gap-2 bg-white text-bg-space font-semibold text-sm py-4 px-8 rounded-full shadow-[0_4px_25px_rgba(255,255,255,0.15)] hover:bg-slate-100 hover:scale-[1.02] active:scale-100 transition-all duration-300 cursor-pointer"
+                    >
+                        🚀 Assinar agora
+                    </button>
+                </div>
+            </section>
+
+            {/* ── FOOTER ────────────────── */}
+            <footer className="relative z-10 border-t border-white/[0.06] bg-[#010307]/30 py-10">
+                <div className="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-6">
+                    <div className="flex flex-col items-center sm:items-start gap-1">
+                        <span className="text-white font-black text-lg tracking-tight font-display">
+                            Controle<span className="text-[#0cf2cd]">-C</span>
+                        </span>
+                        <p className="text-xs text-text-muted font-body-jakarta">
+                            Sua produtividade sob total controle.
+                        </p>
+                    </div>
+                    <div className="flex flex-col items-center sm:items-end gap-1 text-xs text-text-dimmed">
+                        <p>&copy; {new Date().getFullYear()} Controle-C. Todos os direitos reservados.</p>
+                        <p className="text-[10px] text-text-muted">Feito para simplificar sua rotina.</p>
+                    </div>
+                </div>
+            </footer>
 
             {/* ── VIDEO DEMO MODAL ────────────────── */}
             <AnimatePresence>
@@ -1578,6 +1954,65 @@ const App = () => {
                                 ></iframe>
                             </div>
                         </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* ── POPUP DE BÔNUS EXCLUSIVO TEMPORÁRIO ── */}
+            <AnimatePresence>
+                {showBonusPopup && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 100, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 50, scale: 0.95 }}
+                        transition={{ type: "spring", stiffness: 100, damping: 15 }}
+                        className="fixed bottom-6 right-6 z-50 w-[90%] max-w-[360px] bg-[#0b1329]/95 backdrop-blur-2xl border border-[#0cf2cd]/20 rounded-2xl p-5 shadow-[0_20px_50px_rgba(0,0,0,0.5),0_0_30px_rgba(12,242,205,0.08)] select-none text-left"
+                    >
+                        {/* Botão Fechar X */}
+                        <button 
+                            onClick={() => setShowBonusPopup(false)}
+                            className="absolute top-3.5 right-3.5 text-white/40 hover:text-white transition-colors"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+
+                        <div className="flex gap-4">
+                            {/* Ícone com Sparkle e Efeito de Glow */}
+                            <div className="w-12 h-12 rounded-xl bg-[#0cf2cd]/10 border border-[#0cf2cd]/20 flex items-center justify-center text-xl flex-shrink-0 animate-bounce">
+                                🎁
+                            </div>
+                            
+                            <div>
+                                <h4 className="text-sm font-extrabold text-white uppercase tracking-wider mb-1 flex items-center gap-1.5 font-body-jakarta">
+                                    Oferta Especial Limitada
+                                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" />
+                                </h4>
+                                <p className="text-[11px] sm:text-xs text-text-muted leading-relaxed mb-4">
+                                    Assinando o plano <strong>Anual</strong> agora, você receberá uma reunião com o consultor do Controle-C para fazer as configurações necessárias e te instruir!
+                                </p>
+                                
+                                <div className="flex items-center gap-2.5">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setBillingPeriod('annual');
+                                            setShowBonusPopup(false);
+                                            pricingRef.current?.scrollIntoView({ behavior: 'smooth' });
+                                        }}
+                                        className="bg-[#0cf2cd] hover:bg-[#00f5d4] text-black font-extrabold text-[10.5px] px-4 py-2 rounded-xl transition-all duration-300 shadow-[0_0_15px_rgba(12,242,205,0.2)]"
+                                    >
+                                        Garantir Bônus
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowBonusPopup(false)}
+                                        className="text-text-dimmed hover:text-white text-[10.5px] font-bold transition-colors"
+                                    >
+                                        Talvez depois
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>

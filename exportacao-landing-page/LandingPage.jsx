@@ -101,15 +101,50 @@ const situations = [
     }
 ];
 
+const tutorials = [
+    {
+        title: "Agenda",
+        menuTitle: "Agenda",
+        description: "Entenda como funciona a sincronia com o Google Agenda em tempo real.",
+        icon: "📅",
+        videoUrl: "https://player-vz-19ec53c2-073.tv.pandavideo.com.br/embed/?v=f34ce234-1b88-46de-853d-99f708dce428"
+    },
+    {
+        title: "Lista de Tarefas por Projetos",
+        menuTitle: "Tarefas",
+        description: "Entenda como funciona a lista de tarefas, projetos e prazos dentro do Controle-C.",
+        icon: "📋",
+        videoUrl: "https://player-vz-19ec53c2-073.tv.pandavideo.com.br/embed/?v=edefa0e6-3c82-4932-a0eb-d9770a9b93af"
+    },
+    {
+        title: "Rastreador de Hábitos e Rotinas & Gamificação",
+        menuTitle: "Hábitos",
+        description: "Entenda como o controle de hábitos e rotinas é feito dentro do Controle-C e como ele é gamificado e rastreado.",
+        icon: "🔥",
+        videoUrl: "https://player-vz-19ec53c2-073.tv.pandavideo.com.br/embed/?v=dec69694-820c-43ec-b2af-d1d49e71a0e8"
+    },
+    {
+        title: "Controle Financeiro Completo",
+        menuTitle: "Financeiro",
+        description: "Entenda como funcionam todas as funcionalidades de finanças dentro do Controle-C.",
+        icon: "💰",
+        videoUrl: "https://player-vz-19ec53c2-073.tv.pandavideo.com.br/embed/?v=2b7dcaa2-7954-4b05-8f34-3fc3d03d7eca"
+    }
+];
+
 const LandingPage = () => {
     const containerRef = useRef(null);
     const timelineRef = useRef(null);
+    const pricingRef = useRef(null);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [activeTab, setActiveTab] = useState(0);
     const [showDemoModal, setShowDemoModal] = useState(false);
     const [simStep, setSimStep] = useState(0); // 0: audio processing, 1: processed/revealed
     const [cardTilt, setCardTilt] = useState({ x: 0, y: 0 });
     const [billingPeriod, setBillingPeriod] = useState('annual');
+    const [showBonusPopup, setShowBonusPopup] = useState(false);
+    const [hasTriggeredPopup, setHasTriggeredPopup] = useState(false);
+    const [activeTutorialTab, setActiveTutorialTab] = useState(0);
 
     // ── Mobile Performance Guard ──
     // Detects mobile/touch devices robustly (even if "Request Desktop Site" is active)
@@ -150,16 +185,17 @@ const LandingPage = () => {
     };
 
     const [habitDays, setHabitDays] = useState([
-        { day: "Seg", done: true },
-        { day: "Ter", done: true },
-        { day: "Qua", done: true },
-        { day: "Qui", done: true },
-        { day: "Sex", done: true },
-        { day: "Sáb", done: true },
-        { day: "Dom", done: false }
+        { id: 1, label: "SEG", number: 1, completed: true },
+        { id: 2, label: "TER", number: 2, completed: true },
+        { id: 3, label: "QUA", number: 3, completed: false, isToday: true },
+        { id: 4, label: "QUI", number: 4, completed: false },
+        { id: 5, label: "SEX", number: 5, completed: false },
+        { id: 6, label: "SÁB", number: 6, completed: false },
+        { id: 7, label: "DOM", number: 7, completed: false }
     ]);
-    const toggleHabitDay = (index) => {
-        setHabitDays(prev => prev.map((d, idx) => idx === index ? { ...d, done: !d.done } : d));
+    const [activeHabitTab, setActiveHabitTab] = useState("semanal");
+    const toggleHabitDay = (id) => {
+        setHabitDays(prev => prev.map(d => d.id === id ? { ...d, completed: !d.completed } : d));
     };
 
     const budgetData = [
@@ -218,6 +254,34 @@ const LandingPage = () => {
             container.removeEventListener('mousemove', handleMouseMove);
         };
     }, []);
+
+    // Detect when user is viewing pricing section to trigger the bonus popup after a small delay
+    useEffect(() => {
+        if (hasTriggeredPopup) return;
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const timer = setTimeout(() => {
+                        setShowBonusPopup(true);
+                        setHasTriggeredPopup(true);
+                    }, 5000); // 5 seconds delay
+
+                    return () => clearTimeout(timer);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        if (pricingRef.current) {
+            observer.observe(pricingRef.current);
+        }
+
+        return () => {
+            if (pricingRef.current) {
+                observer.unobserve(pricingRef.current);
+            }
+        };
+    }, [hasTriggeredPopup]);
 
     // Animações do Framer Motion - Tactile Spring
     const containerVariants = {
@@ -796,38 +860,117 @@ const LandingPage = () => {
                                 <div className="w-10 h-10 rounded-xl bg-[#f43f5e]/10 border border-[#f43f5e]/20 flex items-center justify-center text-[#f43f5e]">
                                     <Flame className="w-5 h-5 animate-pulse" />
                                 </div>
-                                <h3 className="text-xl font-bold text-white">Hábitos Consistentes</h3>
+                                <h3 className="text-xl font-bold text-white">Gamifique seus Hábitos</h3>
                             </div>
                             <p className="text-text-muted text-sm leading-relaxed mb-6">
-                                Acompanhe sua disciplina diária. Envie um áudio rápido confirmando o treino ou a leitura do dia e veja seus marcadores de consistência se preencherem instantaneamente, mantendo sua chama ativa.
+                                Acompanhe sua disciplina diária. Registre e cumpra seus hábitos no Controle-C. Gamifique sua performance, evolua e acompanhe seu histórico semanal e mensal.
                             </p>
                             
                             {/* Micro-Interface Interativa de Hábitos */}
-                            <div className="bg-[#010307]/60 border border-white/[0.06] rounded-xl p-4">
-                                <div className="flex items-center justify-between text-xs text-text-dimmed mb-3">
-                                    <span>Streak Semanal de Hábitos</span>
-                                    <span className="text-[#f43f5e] font-bold text-[10px] flex items-center gap-0.5">
-                                        <Flame className="w-3.5 h-3.5 text-[#f43f5e]" /> 🔥 6 DIAS ATIVOS
-                                    </span>
+                            <div className="bg-[#0b1329] border border-white/[0.08] rounded-2xl p-5 shadow-2xl relative select-none">
+                                {/* Botão Fechar X no canto superior direito */}
+                                <button className="absolute top-4 right-4 text-white/40 hover:text-white transition-colors">
+                                    <X className="w-4 h-4" />
+                                </button>
+
+                                {/* Cabeçalho do Hábito (Academia) */}
+                                <div className="flex items-center gap-3">
+                                    {/* Ícone com Sparkles e Ponto de Status */}
+                                    <div className="relative w-12 h-12 rounded-2xl bg-[#111e38] border border-white/[0.08] flex items-center justify-center text-[#ffa751]">
+                                        {/* Ponto Ciano Piscante / Brilhante */}
+                                        <span className="absolute -top-1 -left-1 w-2.5 h-2.5 rounded-full bg-[#00c286] shadow-[0_0_8px_#00c286] border border-[#0b1329]" />
+                                        <Sparkles className="w-6 h-6 text-[#ffa751]" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-xl font-bold text-white leading-tight">Academia</h4>
+                                        <p className="text-xs text-text-dimmed mt-0.5 font-medium">Desde 04/05/2026</p>
+                                    </div>
                                 </div>
-                                
-                                <div className="grid grid-cols-7 gap-2.5">
-                                    {habitDays.map((h, i) => (
-                                        <div 
-                                            key={i}
-                                            onClick={() => toggleHabitDay(i)}
-                                            className="flex flex-col items-center gap-1 cursor-pointer group"
+
+                                {/* Seletor de Abas (Vista Semanal / Vista Mensal) */}
+                                <div className="flex bg-[#070d1e] rounded-xl p-1 mt-5 mb-5 border border-white/[0.04]">
+                                    <button 
+                                        type="button"
+                                        onClick={() => setActiveHabitTab("semanal")}
+                                        className={`flex-1 py-2 text-center text-xs font-semibold rounded-lg transition-all duration-300 ${activeHabitTab === "semanal" ? 'bg-[#00c286] text-white shadow-[0_4px_12px_rgba(0,194,134,0.15)] font-bold' : 'text-text-muted hover:text-white'}`}
+                                    >
+                                        Vista Semanal
+                                    </button>
+                                    <button 
+                                        type="button"
+                                        onClick={() => setActiveHabitTab("mensal")}
+                                        className={`flex-1 py-2 text-center text-xs font-semibold rounded-lg transition-all duration-300 ${activeHabitTab === "mensal" ? 'bg-[#00c286] text-white shadow-[0_4px_12px_rgba(0,194,134,0.15)] font-bold' : 'text-text-muted hover:text-white'}`}
+                                    >
+                                        Vista Mensal
+                                    </button>
+                                </div>
+
+                                {/* Conteúdo Conforme Aba Ativa */}
+                                <AnimatePresence mode="wait">
+                                    {activeHabitTab === "semanal" ? (
+                                        <motion.div 
+                                            key="semanal"
+                                            initial={{ opacity: 0, y: 5 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -5 }}
+                                            transition={{ duration: 0.2 }}
+                                            className="grid grid-cols-7 gap-2"
                                         >
-                                            <span className="text-[9px] text-text-dimmed group-hover:text-white transition-colors">{h.day}</span>
-                                            <motion.div 
-                                                whileHover={{ scale: 1.1 }}
-                                                className={`w-7.5 h-7.5 rounded-lg border flex items-center justify-center text-xs font-bold transition-all ${h.done ? 'bg-[#f43f5e]/10 border-[#f43f5e] text-[#f43f5e] shadow-[0_0_10px_rgba(244,63,94,0.15)]' : 'border-white/10 text-text-dimmed hover:border-[#f43f5e]/50'}`}
-                                            >
-                                                {h.done ? "🔥" : "✓"}
-                                            </motion.div>
-                                        </div>
-                                    ))}
-                                </div>
+                                            {habitDays.map((h) => (
+                                                <div 
+                                                    key={h.id}
+                                                    onClick={() => toggleHabitDay(h.id)}
+                                                    className="flex flex-col items-center gap-1.5 cursor-pointer group"
+                                                >
+                                                    <span className="text-[10px] font-bold text-text-dimmed group-hover:text-white transition-colors">{h.label}</span>
+                                                    <motion.div 
+                                                        whileHover={{ scale: 1.05 }}
+                                                        whileTap={{ scale: 0.95 }}
+                                                        className={`w-full aspect-square rounded-xl flex items-center justify-center text-sm font-bold transition-all border ${
+                                                            h.completed 
+                                                                ? 'bg-[#00c286] border-[#00c286] text-[#07120e] shadow-[0_0_12px_rgba(0,194,134,0.25)]' 
+                                                                : h.isToday 
+                                                                    ? 'border-white bg-[#0e172c] text-white' 
+                                                                    : 'bg-[#0d1527] border-white/[0.04] text-text-dimmed hover:border-white/10'
+                                                        }`}
+                                                    >
+                                                        {h.number}
+                                                    </motion.div>
+                                                </div>
+                                            ))}
+                                        </motion.div>
+                                    ) : (
+                                        <motion.div 
+                                            key="mensal"
+                                            initial={{ opacity: 0, y: 5 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -5 }}
+                                            transition={{ duration: 0.2 }}
+                                            className="grid grid-cols-7 gap-1.5 max-h-[140px] overflow-y-auto pr-0.5"
+                                        >
+                                            {[...Array(30)].map((_, index) => {
+                                                const dayNum = index + 1;
+                                                const isCompleted = dayNum <= 15;
+                                                const isCurrent = dayNum === 16;
+                                                return (
+                                                    <motion.div
+                                                        key={index}
+                                                        whileHover={{ scale: 1.05 }}
+                                                        className={`aspect-square rounded-lg flex items-center justify-center text-[9px] font-bold transition-all border ${
+                                                            isCompleted 
+                                                                ? 'bg-[#00c286]/80 border-[#00c286]/20 text-[#07120e] shadow-[0_0_6px_rgba(0,194,134,0.1)]' 
+                                                                : isCurrent 
+                                                                    ? 'border-white bg-[#0e172c] text-white' 
+                                                                    : 'bg-[#0d1527] border-[#0d1527] text-text-dimmed'
+                                                        }`}
+                                                    >
+                                                        {dayNum}
+                                                    </motion.div>
+                                                );
+                                            })}
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </div>
                         </motion.div>
                         
@@ -870,7 +1013,7 @@ const LandingPage = () => {
                         transition={{ type: "spring", stiffness: 15, damping: 13, mass: 1.4, delay: 0.3 }}
                         className="text-text-muted text-sm sm:text-base max-w-2xl leading-relaxed"
                     >
-                        Use a tela cheia no escritório para planejar sua semana e o aplicativo mobile na rua para registros rápidos de gastos, hábitos e tarefas.
+                        Use a tela cheia no computador para planejar sua semana e o celular na rua para atualizar seu processo em tempo real.
                     </motion.p>
                 </div>
 
@@ -906,7 +1049,7 @@ const LandingPage = () => {
                             {/* Conteúdo da Tela */}
                             <div className="aspect-[1.65] w-full bg-[#030712]/98 relative overflow-hidden">
                                 <img 
-                                    src="/dashboard_desktop_v2.png" 
+                                    src="/dashboard_desktop.png" 
                                     alt="Controle-C Desktop Dashboard" 
                                     className="w-full h-full object-cover"
                                 />
@@ -942,7 +1085,7 @@ const LandingPage = () => {
                             {/* Tela do Telefone */}
                             <div className="rounded-[28px] overflow-hidden bg-[#030712] aspect-[547/767] w-full border border-white/[0.04] relative select-none">
                                 <img 
-                                    src="/dashboard_mobile_v2.png" 
+                                    src="/dashboard_mobile.png" 
                                     alt="Controle-C Mobile Dashboard" 
                                     className="w-full h-full object-cover"
                                 />
@@ -960,7 +1103,7 @@ const LandingPage = () => {
 
                             <div className="rounded-[26px] overflow-hidden bg-[#030712] aspect-[547/767] w-full border border-white/[0.04] relative">
                                 <img 
-                                    src="/dashboard_mobile_v2.png" 
+                                    src="/dashboard_mobile.png" 
                                     alt="Controle-C Mobile Dashboard" 
                                     className="w-full h-full object-cover"
                                 />
@@ -1006,7 +1149,7 @@ const LandingPage = () => {
                         transition={{ type: "spring", stiffness: 15, damping: 13, mass: 1.4, delay: 0.3 }}
                         className="text-text-muted text-sm sm:text-base max-w-xl mx-auto leading-relaxed"
                     >
-                        Uma vida inteira de desorganização consome energia silenciosamente. Veja o contraste de delegar toda a fricção operacional para um sistema tátil.
+                        Uma vida desorganizada consome sua energia aos poucos. Veja a diferença entre viver no caos e ter o controle com uma ferramenta integrada e única.
                     </motion.p>
                 </div>
 
@@ -1197,7 +1340,7 @@ const LandingPage = () => {
             `}</style>
 
             {/* ── SEÇÃO: PASSE LIVRE PARA O CONTROLE (PORTAL DE ACESSO HOLOGRÁFICO) ── */}
-            <section id="precos" className="relative py-24 md:py-28 z-10 w-full max-w-5xl mx-auto px-6 overflow-hidden">
+            <section ref={pricingRef} id="precos" className="relative py-24 md:py-28 z-10 w-full max-w-5xl mx-auto px-6 overflow-hidden">
                 {/* Atmosfera de Luz de Fundo (Tech Space Glows) */}
                 <div className="absolute right-[-10%] top-1/4 w-[400px] h-[400px] rounded-full bg-[#0cf2cd]/4 blur-[130px] pointer-events-none z-0" />
                 <div className="absolute left-[-10%] bottom-1/4 w-[400px] h-[400px] rounded-full bg-[#8b5cf6]/4 blur-[130px] pointer-events-none z-0" />
@@ -1222,7 +1365,7 @@ const LandingPage = () => {
                         transition={{ type: "spring", stiffness: 15, damping: 13, mass: 1.4, delay: 0.15 }}
                         className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight mb-4 premium-text-shadow font-body-jakarta"
                     >
-                        Sua rotina. Redesenhada.
+                        Sua rotina redesenhada e consistente
                     </motion.h2>
                     
                     <motion.p
@@ -1232,7 +1375,7 @@ const LandingPage = () => {
                         transition={{ type: "spring", stiffness: 15, damping: 13, mass: 1.4, delay: 0.3 }}
                         className="text-text-muted text-sm sm:text-base leading-relaxed max-w-2xl mx-auto"
                     >
-                        O Controle-C não é apenas mais um aplicativo de tarefas. É um sistema completo e invisível que trabalha para você a partir do seu WhatsApp. Escolha o seu passe de acesso abaixo.
+                        O Controle-C não é apenas mais uma ferramenta de organização. É um sistema completo e invisível que trabalha para você. Escolha o seu plano abaixo.
                     </motion.p>
                 </div>
 
@@ -1246,36 +1389,40 @@ const LandingPage = () => {
                             
                             {[
                                 {
-                                    highlight: "Controle de Finanças por Áudio",
-                                    desc: "Envie áudios rápidos de 3 segundos no WhatsApp para registrar gastos e despesas em débito, crédito ou dinheiro instantaneamente."
-                                },
-                                {
-                                    highlight: "Planejamento Financeiro Ativo",
-                                    desc: "Defina limites mensais de gastos e orçamentos por categorias inteligentes para economizar sem tocar em uma única planilha."
-                                },
-                                {
-                                    highlight: "Lembrete Inteligente de Contas",
-                                    desc: "Chega de juros. O Controle-C monitora e lembra você ativamente antes do vencimento dos seus boletos e despesas recorrentes."
+                                    highlight: "Controle Total de Agenda",
+                                    desc: "Vincule o Google Agenda e acompanhe seus compromissos em tempo real. Crie e edite eventos, configure reuniões e adicione descrições ou locais."
                                 },
                                 {
                                     highlight: "Listas de Tarefas por Projetos",
-                                    desc: "Crie listas temáticas, priorize suas tarefas diárias e organize fluxos de trabalho diretamente pelo chat."
+                                    desc: "Crie listas por projetos, defina prazos para priorizar suas tarefas diárias e organize seu fluxo de trabalho todos os dias."
                                 },
                                 {
-                                    highlight: "Rastreador de Hábitos & Streaks",
-                                    desc: "Consolide sua rotina de exercícios, leitura ou estudos com streaks visuais de progresso (🔥) e lembretes diários leves."
+                                    highlight: "Rastreador de Hábitos e Rotinas com Gamificação",
+                                    desc: "Consolide hábitos e rotinas importantes para você. Acompanhe seu progresso na semana e no mês com gamificação em tempo real."
                                 },
                                 {
-                                    highlight: "Sincronização com Google Agenda",
-                                    desc: "Seus compromissos criados no WhatsApp entram automaticamente e em tempo real no seu calendário oficial da Google."
+                                    highlight: "Controle Financeiro Completo",
+                                    desc: "Registre receitas e despesas em todas as formas de pagamento (Pix, dinheiro, débito e crédito) e planeje seus gastos para até 24 meses."
+                                },
+                                {
+                                    highlight: "Limites Mensais",
+                                    desc: "Defina limites de gastos mensais e orçamentos por categorias inteligentes para economizar sem precisar de planilhas."
+                                },
+                                {
+                                    highlight: "Lembrete Inteligente de Contas",
+                                    desc: "Evite juros e atrasos. O sistema monitora e lembra você ativamente antes do vencimento de boletos e contas recorrentes."
+                                },
+                                {
+                                    highlight: "Gráficos Financeiros e Comparativos",
+                                    desc: "Filtre seus dados por período para comparar receitas e despesas de forma visual por meio de gráficos e relatórios comparativos."
                                 },
                                 {
                                     highlight: "Painel Web 360° Exclusivo",
-                                    desc: "Acesse uma interface web espetacular, limpa e responsiva para ver toda a sua vida organizada de forma consolidada."
+                                    desc: "Acesse uma interface espetacular, limpa e responsiva para computador e celular para ver toda a sua vida organizada de forma consolidada."
                                 },
                                 {
-                                    highlight: "Toda a sua Vida Organizada",
-                                    desc: "Centralize finanças, compromissos, tarefas e hábitos em um único ecossistema invisível, prático e livre de fricção."
+                                    highlight: "Controle-C: Toda a sua Vida Organizada",
+                                    desc: "Centralize suas finanças, compromissos, tarefas e hábitos em um ecossistema invisível, prático e totalmente livre de problemas."
                                 }
                             ].map((item, idx) => (
                                 <motion.div 
@@ -1321,12 +1468,22 @@ const LandingPage = () => {
                                 {/* Glow de destaque interno metálico */}
                                 <div className="absolute -right-20 -top-20 w-44 h-44 rounded-full bg-[#0cf2cd]/6 blur-[80px] pointer-events-none" />
 
-                                {/* Tag de Acesso e Versão */}
+                                {/* Tag de Acesso */}
                                 <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/[0.04] relative z-10">
-                                    <span className="text-[9px] text-[#0cf2cd] font-bold uppercase tracking-wider bg-[#0cf2cd]/8 px-2.5 py-1 rounded-full border border-[#0cf2cd]/20 animate-pulse">
-                                        {billingPeriod === 'annual' ? 'LICENÇA ANUAL COMPLETA' : 'ASSINATURA MENSAL'}
-                                    </span>
-                                    <span className="text-[10px] text-text-dimmed font-bold tracking-widest uppercase opacity-60">CONTROLE-C V2.0</span>
+                                    {billingPeriod === 'annual' ? (
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[9px] text-[#0cf2cd] font-bold uppercase tracking-wider bg-[#0cf2cd]/8 px-2.5 py-1 rounded-full border border-[#0cf2cd]/20 animate-pulse">
+                                                LICENÇA ANUAL COMPLETA
+                                            </span>
+                                            <span className="text-[9px] text-white font-black uppercase tracking-wider bg-purple-600 px-2.5 py-1 rounded-full border border-purple-500 shadow-[0_0_12px_rgba(147,51,234,0.45)]">
+                                                ★ RECOMENDADO
+                                            </span>
+                                        </div>
+                                    ) : (
+                                        <span className="text-[9px] text-[#0cf2cd] font-bold uppercase tracking-wider bg-[#0cf2cd]/8 px-2.5 py-1 rounded-full border border-[#0cf2cd]/20">
+                                            ASSINATURA MENSAL
+                                        </span>
+                                    )}
                                 </div>
 
                                 {/* Seletor de Planos (Mensal vs Anual) */}
@@ -1355,17 +1512,18 @@ const LandingPage = () => {
                                             <p className="text-[10px] text-text-muted/60 line-through font-semibold tracking-wide uppercase mb-1">De R$ 99,90/mês</p>
                                             <p className="text-[11px] text-text-dimmed font-bold uppercase tracking-wider mb-2.5">Por apenas</p>
                                             
-                                            <div className="flex flex-col relative leading-none">
+                                            <div className="flex flex-col relative leading-none text-left">
                                                 {/* Giant elegant Serif display block for numbers */}
+                                                <span className="text-lg sm:text-2xl font-bold text-white/70 tracking-normal mb-1">12x</span>
                                                 <span className="text-5xl sm:text-6xl font-black text-white tracking-tighter premium-text-shadow font-display">
-                                                    12x <span className="text-[26px] sm:text-[34px] font-extrabold tracking-normal">R$</span> 61,69
+                                                    <span className="text-[26px] sm:text-[34px] font-extrabold tracking-normal mr-1">R$</span>61,69
                                                 </span>
                                             </div>
                                             <p className="text-[10px] text-[#0cf2cd] font-semibold mt-3 select-none uppercase tracking-wider">Ou R$ 600,00 à vista (Economize 37%)</p>
                                         </>
                                     ) : (
                                         <>
-                                            <p className="text-[10px] text-text-muted/60 line-through font-semibold tracking-wide uppercase mb-1 opacity-0">De R$ 99,90/mês</p>
+                                            <p className="text-[10px] text-text-muted/60 line-through font-semibold tracking-wide uppercase mb-1">De R$ 120,00/mês</p>
                                             <p className="text-[11px] text-text-dimmed font-bold uppercase tracking-wider mb-2.5">Por apenas</p>
                                             
                                             <div className="flex flex-col relative leading-none">
@@ -1379,12 +1537,22 @@ const LandingPage = () => {
                                     )}
                                 </div>
 
-                                <p className="text-text-muted text-[10.5px] leading-relaxed text-left mb-8 relative z-10 border-l border-white/[0.08] pl-3 italic">
+                                <p className="text-text-muted text-[10.5px] leading-relaxed text-left mb-6 relative z-10 border-l border-white/[0.08] pl-3 italic">
                                     {billingPeriod === 'annual' 
-                                        ? "Equivale a míseros R$ 1,66 por dia. Menos que um único café expresso por semana para colocar a sua mente no controle absoluto."
-                                        : "Equivale a R$ 2,66 por dia. Menos que um refrigerante por semana para colocar toda a sua vida organizada de forma imediata."
+                                        ? "Equivalente a R$ 2,05 por dia. Menos que um único café expresso por dia para colocar a sua mente e sua vida no controle absoluto."
+                                        : "Equivalente a R$ 2,67 por dia. Menos que um único café expresso por dia para colocar a sua mente e sua vida no controle absoluto."
                                     }
                                 </p>
+
+                                {/* 🎁 Destaque de Bônus da Reunião com Consultor */}
+                                <div className="relative z-10 mb-6 bg-gradient-to-r from-[#0cf2cd]/10 to-[#8b5cf6]/10 border border-[#0cf2cd]/20 rounded-2xl p-4 text-left shadow-[0_4px_20px_rgba(12,242,205,0.05)]">
+                                    <div className="absolute top-[-8px] left-4 bg-purple-600 text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider border border-purple-500 shadow-[0_0_8px_rgba(147,51,234,0.4)]">
+                                        BÔNUS INCLUSO 🎁
+                                    </div>
+                                    <p className="text-[11.5px] sm:text-xs text-white leading-relaxed mt-1 font-body-jakarta">
+                                        Assinando agora, você receberá uma <strong className="text-[#0cf2cd]">reunião com o consultor do Controle-C</strong> para fazer as configurações necessárias e te instruir.
+                                    </p>
+                                </div>
 
                                 {/* Botão de Ignição e Disparo Cibernético (CTA Máximo) */}
                                 <div className="relative z-10 w-full mb-6">
@@ -1400,17 +1568,17 @@ const LandingPage = () => {
                                 </div>
 
                                 {/* Selos de Segurança e Confiança Premium */}
-                                <div className="space-y-2.5 border-t border-white/[0.04] pt-5 relative z-10 text-left">
-                                    <div className="flex items-center gap-2.5 text-text-dimmed text-[9.5px] font-semibold">
-                                        <span className="text-[#0cf2cd]">✓</span>
+                                <div className="space-y-2 pt-5 border-t border-white/[0.04] relative z-10 text-left">
+                                    <div className="flex items-center gap-2 text-text-dimmed text-[10px] font-semibold">
+                                        <span>✅</span>
                                         <span>Garantia de Satisfação de 7 dias</span>
                                     </div>
-                                    <div className="flex items-center gap-2.5 text-text-dimmed text-[9.5px] font-semibold">
-                                        <span className="text-[#0cf2cd]">✓</span>
-                                        <span>Acesso imediato e direto no seu WhatsApp</span>
+                                    <div className="flex items-center gap-2 text-text-dimmed text-[10px] font-semibold">
+                                        <span>✅</span>
+                                        <span>Acesso Imediato após a assinatura</span>
                                     </div>
-                                    <div className="flex items-center gap-2.5 text-text-dimmed text-[9.5px] font-semibold">
-                                        <span className="text-[#0cf2cd]">✓</span>
+                                    <div className="flex items-center gap-2 text-text-dimmed text-[10px] font-semibold">
+                                        <span>✅</span>
                                         <span>Dados 100% criptografados e seguros</span>
                                     </div>
                                 </div>
@@ -1420,6 +1588,119 @@ const LandingPage = () => {
 
                 </div>
             </section>
+
+            {/* ── SEÇÃO: VIDEO TUTORIAIS / DÚVIDAS DAS FUNCIONALIDADES ── */}
+            <section id="tutoriais" className="relative py-24 md:py-28 z-10 w-full max-w-5xl mx-auto px-6 overflow-hidden">
+                {/* Glows de Fundo */}
+                <div className="absolute left-[-10%] top-1/3 w-[350px] h-[350px] rounded-full bg-[#8b5cf6]/4 blur-[120px] pointer-events-none z-0" />
+                <div className="absolute right-[-10%] bottom-1/3 w-[350px] h-[350px] rounded-full bg-[#0cf2cd]/4 blur-[120px] pointer-events-none z-0" />
+
+                {/* Header */}
+                <div className="text-center mb-16 flex flex-col items-center relative z-10">
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/[0.08] bg-white/[0.02] text-xs font-semibold uppercase tracking-wider text-purple-400 mb-4 backdrop-blur-md">
+                        <span>Dúvidas Frequentes</span>
+                    </div>
+                    <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight mb-4 premium-text-shadow font-body-jakarta">
+                        Possui dúvidas sobre as funcionalidades?
+                    </h2>
+                    <p className="text-text-muted text-sm sm:text-base leading-relaxed max-w-2xl mx-auto">
+                        Entenda um pouco mais do que tem dentro do Controle-C através de algumas vídeo aulas do nosso consultor.
+                    </p>
+                </div>
+
+                {/* Horizontal Premium Navigation Menu */}
+                <div className="flex overflow-x-auto lg:justify-center items-center gap-4 pb-6 scrollbar-none w-full max-w-4xl mx-auto mb-6 relative z-10 px-1">
+                    {tutorials.map((tutorial, idx) => (
+                        <button
+                            key={idx}
+                            onClick={() => setActiveTutorialTab(idx)}
+                            className={`flex items-center gap-3 px-5 py-3.5 rounded-2xl border transition-all duration-300 cursor-pointer ${
+                                activeTutorialTab === idx
+                                    ? 'bg-[#0cf2cd]/10 border-[#0cf2cd]/40 text-[#0cf2cd] shadow-[0_0_20px_rgba(12,242,205,0.08)]'
+                                    : 'bg-[#0b0f19]/80 border-white/[0.05] text-text-muted hover:text-white hover:border-white/[0.12]'
+                            }`}
+                        >
+                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 border ${
+                                activeTutorialTab === idx
+                                    ? 'bg-[#0cf2cd]/15 border-[#0cf2cd]/30 text-[#0cf2cd]'
+                                    : 'bg-white/[0.02] border-white/[0.08] text-text-muted'
+                            }`}>
+                                {(() => {
+                                    const Icon = [Calendar, CheckCircle2, Flame, DollarSign][idx];
+                                    return <Icon className="w-4 h-4" />;
+                                })()}
+                            </div>
+                            <div className="text-left leading-tight">
+                                <span className="text-xs sm:text-sm font-bold tracking-tight block font-display">
+                                    {tutorial.menuTitle}
+                                </span>
+                            </div>
+                        </button>
+                    ))}
+                </div>
+
+                {/* Centered Active Tab Description */}
+                <p className="text-center text-text-muted text-xs sm:text-sm max-w-xl mx-auto mb-10 min-h-[40px] relative z-10 leading-relaxed px-4">
+                    {tutorials[activeTutorialTab]?.description}
+                </p>
+
+                {/* Centered Premium Mockup for Walkthrough Video */}
+                <div className="w-full max-w-3xl mx-auto bg-[#010307]/60 border border-white/[0.08] rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] overflow-hidden mb-12 relative z-10">
+                    {/* Browser Mockup Top Bar */}
+                    <div className="flex items-center justify-between px-5 py-3 border-b border-white/[0.06] bg-white/[0.01]">
+                        <div className="flex gap-2">
+                            <div className="w-2.5 h-2.5 rounded-full bg-[#ff5f56]" />
+                            <div className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]" />
+                            <div className="w-2.5 h-2.5 rounded-full bg-[#27c93f]" />
+                        </div>
+                        <div className="px-4 py-1 rounded-full bg-[#010307]/50 border border-white/[0.08] text-[10px] text-text-muted select-none font-display">
+                            Configurando {tutorials[activeTutorialTab]?.title || 'Controle-C'}
+                        </div>
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#0cf2cd]/60 animate-pulse" />
+                    </div>
+                    {/* Active Video Stream */}
+                    <div className="aspect-video w-full bg-[#010307]/40 relative overflow-hidden">
+                        <iframe
+                            id={`panda-${tutorials[activeTutorialTab]?.videoUrl.split('?v=')[1]}`}
+                            src={tutorials[activeTutorialTab]?.videoUrl}
+                            title={tutorials[activeTutorialTab]?.title}
+                            style={{ border: 'none' }}
+                            allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture"
+                            allowFullScreen={true}
+                            className="w-full h-full border-0"
+                            loading="lazy"
+                        ></iframe>
+                    </div>
+                </div>
+
+                {/* Section Footer CTA */}
+                <div className="text-center relative z-10 flex flex-col items-center">
+                    <button
+                        onClick={() => pricingRef.current?.scrollIntoView({ behavior: 'smooth' })}
+                        className="inline-flex items-center justify-center gap-2 bg-white text-bg-space font-semibold text-sm py-4 px-8 rounded-full shadow-[0_4px_25px_rgba(255,255,255,0.15)] hover:bg-slate-100 hover:scale-[1.02] active:scale-100 transition-all duration-300 cursor-pointer"
+                    >
+                        🚀 Assinar agora
+                    </button>
+                </div>
+            </section>
+
+            {/* ── FOOTER ────────────────── */}
+            <footer className="relative z-10 border-t border-white/[0.06] bg-[#010307]/30 py-10">
+                <div className="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-6">
+                    <div className="flex flex-col items-center sm:items-start gap-1">
+                        <span className="text-white font-black text-lg tracking-tight font-display">
+                            Controle<span className="text-[#0cf2cd]">-C</span>
+                        </span>
+                        <p className="text-xs text-text-muted font-body-jakarta">
+                            Sua produtividade sob total controle.
+                        </p>
+                    </div>
+                    <div className="flex flex-col items-center sm:items-end gap-1 text-xs text-text-dimmed">
+                        <p>&copy; {new Date().getFullYear()} Controle-C. Todos os direitos reservados.</p>
+                        <p className="text-[10px] text-text-muted">Feito para simplificar sua rotina.</p>
+                    </div>
+                </div>
+            </footer>
 
             {/* ── VIDEO DEMO MODAL ────────────────── */}
             <AnimatePresence>
@@ -1464,6 +1745,65 @@ const LandingPage = () => {
                                 ></iframe>
                             </div>
                         </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* ── POPUP DE BÔNUS EXCLUSIVO TEMPORÁRIO ── */}
+            <AnimatePresence>
+                {showBonusPopup && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 100, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 50, scale: 0.95 }}
+                        transition={{ type: "spring", stiffness: 100, damping: 15 }}
+                        className="fixed bottom-6 right-6 z-50 w-[90%] max-w-[360px] bg-[#0b1329]/95 backdrop-blur-2xl border border-[#0cf2cd]/20 rounded-2xl p-5 shadow-[0_20px_50px_rgba(0,0,0,0.5),0_0_30px_rgba(12,242,205,0.08)] select-none text-left"
+                    >
+                        {/* Botão Fechar X */}
+                        <button 
+                            onClick={() => setShowBonusPopup(false)}
+                            className="absolute top-3.5 right-3.5 text-white/40 hover:text-white transition-colors"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+
+                        <div className="flex gap-4">
+                            {/* Ícone com Sparkle e Efeito de Glow */}
+                            <div className="w-12 h-12 rounded-xl bg-[#0cf2cd]/10 border border-[#0cf2cd]/20 flex items-center justify-center text-xl flex-shrink-0 animate-bounce">
+                                🎁
+                            </div>
+                            
+                            <div>
+                                <h4 className="text-sm font-extrabold text-white uppercase tracking-wider mb-1 flex items-center gap-1.5 font-body-jakarta">
+                                    Oferta Especial Limitada
+                                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" />
+                                </h4>
+                                <p className="text-[11px] sm:text-xs text-text-muted leading-relaxed mb-4">
+                                    Assinando o plano <strong>Anual</strong> agora, você receberá uma reunião com o consultor do Controle-C para fazer as configurações necessárias e te instruir!
+                                </p>
+                                
+                                <div className="flex items-center gap-2.5">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setBillingPeriod('annual');
+                                            setShowBonusPopup(false);
+                                            pricingRef.current?.scrollIntoView({ behavior: 'smooth' });
+                                        }}
+                                        className="bg-[#0cf2cd] hover:bg-[#00f5d4] text-black font-extrabold text-[10.5px] px-4 py-2 rounded-xl transition-all duration-300 shadow-[0_0_15px_rgba(12,242,205,0.25)]"
+                                    >
+                                        Garantir Bônus
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowBonusPopup(false)}
+                                        className="text-text-dimmed hover:text-white text-[10.5px] font-bold transition-colors"
+                                    >
+                                        Talvez depois
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>
