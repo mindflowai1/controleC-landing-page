@@ -6,8 +6,8 @@ const situations = [
     {
         tabLabel: "Acordando na segunda",
         emoji: "🌅",
-        userMessage: "Jarvis, o que eu tenho programado para hoje e qual é a primeira tarefa da minha semana?",
-        jarvisReply: "Bom dia, chefe! Você tem 3 compromissos hoje. O primeiro é a Reunião de Alinhamento às 10:00. Sua primeira tarefa pendente é 'Revisar proposta do Controle-C'.",
+        userMessage: "Controle-C, o que eu tenho programado para hoje e qual é a primeira tarefa da minha semana?",
+        botReply: "Bom dia, chefe! Você tem 3 compromissos hoje. O primeiro é a Reunião de Alinhamento às 10:00. Sua primeira tarefa pendente é 'Revisar proposta do Controle-C'.",
         category: "Agenda & Tarefas",
         tags: ["Agenda", "Tarefas"],
         metricLabel: "Progresso Semanal",
@@ -22,8 +22,8 @@ const situations = [
     {
         tabLabel: "Na fila do café",
         emoji: "☕",
-        userMessage: "Jarvis, comprei um cappuccino e um pão na chapa. Deu R$ 18,50 no débito.",
-        jarvisReply: "Anotado, chefe! R$ 18,50 lançados em Alimentação. Seu gasto na categoria esta semana está em R$ 94,20 (dentro da meta de R$ 250).",
+        userMessage: "Controle-C, comprei um cappuccino e um pão na chapa. Deu R$ 18,50 no débito.",
+        botReply: "Anotado, chefe! R$ 18,50 lançados em Alimentação. Seu gasto na categoria esta semana está em R$ 94,20 (dentro da meta de R$ 250).",
         category: "Finanças Pessoais",
         tags: ["Finanças", "Alimentação"],
         metricLabel: "Orçamento Diário",
@@ -38,8 +38,8 @@ const situations = [
     {
         tabLabel: "Briefing diário",
         emoji: "📊",
-        userMessage: "Jarvis, me dá um resumo do meu orçamento e compromissos de hoje de forma rápida.",
-        jarvisReply: "Resumo pronto! Compromissos: 2 reuniões à tarde. Gastos de hoje: R$ 0,00 lançados. Saldo restante do mês dentro do planejado. Você está no caminho certo!",
+        userMessage: "Controle-C, me dá um resumo do meu orçamento e compromissos de hoje de forma rápida.",
+        botReply: "Resumo pronto! Compromissos: 2 reuniões à tarde. Gastos de hoje: R$ 0,00 lançados. Saldo restante do mês dentro do planejado. Você está no caminho certo!",
         category: "Relatórios & Resumos",
         tags: ["Briefing", "Sincronizado"],
         metricLabel: "Previsão Mensal",
@@ -54,8 +54,8 @@ const situations = [
     {
         tabLabel: "Querendo aprender",
         emoji: "💡",
-        userMessage: "Jarvis, salve esse link sobre Inteligência Artificial na minha base de conhecimento para ler mais tarde.",
-        jarvisReply: "Link salvo com sucesso na sua Base de Conhecimento! Marquei como 'Tecnologia' e 'Leitura'. Deseja que eu agende um lembrete para domingo às 19:00?",
+        userMessage: "Controle-C, salve esse link sobre Inteligência Artificial na minha base de conhecimento para ler mais tarde.",
+        botReply: "Link salvo com sucesso na sua Base de Conhecimento! Marquei como 'Tecnologia' e 'Leitura'. Deseja que eu agende um lembrete para domingo às 19:00?",
         category: "Base de Conhecimento",
         tags: ["Conhecimento", "Leitura"],
         metricLabel: "Artigos Salvos",
@@ -70,8 +70,8 @@ const situations = [
     {
         tabLabel: "Sexta à noite",
         emoji: "🎉",
-        userMessage: "Jarvis, acabei de treinar agora na academia. Marca como concluído meu hábito de exercícios.",
-        jarvisReply: "Excelente trabalho, chefe! Hábito de 'Exercícios Físicos' marcado. Você completou 5 dias seguidos! Streak de fogo ativado: 🔥 5 dias!",
+        userMessage: "Controle-C, acabei de treinar agora na academia. Marca como concluído meu hábito de exercícios.",
+        botReply: "Excelente trabalho, chefe! Hábito de 'Exercícios Físicos' marcado. Você completou 5 dias seguidos! Streak de fogo ativado: 🔥 5 dias!",
         category: "Gestão de Hábitos",
         tags: ["Habits", "🔥 Streak!"],
         metricLabel: "Hábito Semanal",
@@ -86,8 +86,8 @@ const situations = [
     {
         tabLabel: "Final do mês",
         emoji: "📈",
-        userMessage: "Jarvis, como fecharam minhas contas este mês? Consegui poupar o planejado?",
-        jarvisReply: "Parabéns, chefe! Você poupou R$ 1.500,00 este mês, superando a meta em 15%. Seus maiores gastos foram Alimentação e Lazer. Relatório detalhado disponível no painel!",
+        userMessage: "Controle-C, como fecharam minhas contas este mês? Consegui poupar o planejado?",
+        botReply: "Parabéns, chefe! Você poupou R$ 1.500,00 este mês, superando a meta em 15%. Seus maiores gastos foram Alimentação e Lazer. Relatório detalhado disponível no painel!",
         category: "Finanças Avançadas",
         tags: ["Balanço", "Relatório"],
         metricLabel: "Saldo Economizado",
@@ -142,9 +142,14 @@ const App = () => {
     const [simStep, setSimStep] = useState(0); // 0: audio processing, 1: processed/revealed
     const [cardTilt, setCardTilt] = useState({ x: 0, y: 0 });
     const [billingPeriod, setBillingPeriod] = useState('annual');
-    const [showBonusPopup, setShowBonusPopup] = useState(false);
-    const [hasTriggeredPopup, setHasTriggeredPopup] = useState(false);
     const [activeTutorialTab, setActiveTutorialTab] = useState(0);
+
+    const isOfferActive = useMemo(() => {
+        const now = new Date();
+        const startDate = new Date('2026-06-06T00:00:00');
+        const endDate = new Date('2026-07-06T23:59:59');
+        return now >= startDate && now <= endDate;
+    }, []);
 
     const alternatingWords = useMemo(() => [
         { text: "agenda", colorClass: "text-[#ffd700]" },
@@ -265,34 +270,6 @@ const App = () => {
         return () => clearInterval(cycleTimer);
     }, [isMobile]);
 
-    // Detect when user is viewing pricing section to trigger the bonus popup after a small delay
-    useEffect(() => {
-        if (hasTriggeredPopup) return;
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const timer = setTimeout(() => {
-                        setShowBonusPopup(true);
-                        setHasTriggeredPopup(true);
-                    }, 5000); // 5 seconds delay
-
-                    return () => clearTimeout(timer);
-                }
-            });
-        }, { threshold: 0.1 });
-
-        if (pricingRef.current) {
-            observer.observe(pricingRef.current);
-        }
-
-        return () => {
-            if (pricingRef.current) {
-                observer.unobserve(pricingRef.current);
-            }
-        };
-    }, [hasTriggeredPopup]);
-
     // High-performance cursor tracking for dynamic background glow spotlight (desktop only)
     useEffect(() => {
         if (isMobile) return; // No cursor tracking on touch devices
@@ -312,6 +289,33 @@ const App = () => {
             container.removeEventListener('mousemove', handleMouseMove);
         };
     }, []);
+
+    // Auto-play mobile video on user touch or scroll interaction
+    useEffect(() => {
+        if (!isMobile) return;
+
+        const handleInteraction = () => {
+            if (mobileVideoRef.current) {
+                mobileVideoRef.current.play()
+                    .then(() => {
+                        removeListeners();
+                    })
+                    .catch((err) => {
+                        console.log("Mobile interaction autoplay prevented:", err);
+                    });
+            }
+        };
+
+        const removeListeners = () => {
+            window.removeEventListener('touchstart', handleInteraction);
+            window.removeEventListener('scroll', handleInteraction);
+        };
+
+        window.addEventListener('touchstart', handleInteraction, { passive: true });
+        window.addEventListener('scroll', handleInteraction, { passive: true });
+
+        return removeListeners;
+    }, [isMobile]);
 
     // Animações do Framer Motion - Tactile Spring
     const containerVariants = {
@@ -335,7 +339,25 @@ const App = () => {
     };
 
     return (
-        <div ref={containerRef} className="min-h-screen bg-bg-space text-text-main font-body-jakarta overflow-x-hidden relative">
+        <div ref={containerRef} className={`min-h-screen bg-bg-space text-text-main font-body-jakarta overflow-x-hidden relative ${isOfferActive ? 'pt-[36px] sm:pt-[40px]' : ''}`}>
+            
+            {isOfferActive && (
+                <div className="fixed top-0 left-0 right-0 z-50 w-full bg-[#030712]/85 backdrop-blur-md border-b border-[#0cf2cd]/30 text-xs sm:text-sm py-2 px-4 flex items-center justify-center text-center gap-2 select-none animate-slide-down">
+                    <span className="flex h-2 w-2 relative">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#0cf2cd] opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-[#0cf2cd]"></span>
+                    </span>
+                    <span className="text-white font-medium">
+                        🔥 <strong className="text-[#0cf2cd]">Oferta Especial:</strong> Garanta <strong className="text-[#ffd700]">20% de desconto</strong> em todos os planos até 06/07!
+                    </span>
+                    <a 
+                        href="#precos" 
+                        className="ml-2 bg-[#0cf2cd]/10 hover:bg-[#0cf2cd]/20 border border-[#0cf2cd]/30 text-[#0cf2cd] font-bold px-3 py-1 rounded-full text-[10px] sm:text-xs transition-all duration-300 hover:scale-105 active:scale-95"
+                    >
+                        Aproveitar Desconto
+                    </a>
+                </div>
+            )}
             
             {/* ── INTERACTIVE CURSOR SPOTLIGHT GLOW (Desktop only — GPU layer removed on mobile) ── */}
             {!isMobile && <div 
@@ -571,19 +593,16 @@ const App = () => {
                         <div className="w-full bg-[#010307]/60 backdrop-blur-3xl border border-white/[0.08] rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.8)] overflow-hidden transition-all duration-500 hover:border-white/[0.15]">
                             
                             {/* Top Bar da Janela (Browser Mockup Style) */}
-                            <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.06] bg-white/[0.02]">
-                                <div className="flex gap-2">
+                            <div className="flex items-center px-5 py-3.5 border-b border-white/[0.06] bg-white/[0.02]">
+                                <div className="flex gap-2 flex-shrink-0">
                                     <div className="w-3 h-3 rounded-full bg-[#ff5f56]" />
                                     <div className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
                                     <div className="w-3 h-3 rounded-full bg-[#27c93f]" />
                                 </div>
-                                <div className="px-5 py-1.5 rounded-full bg-[#010307]/50 border border-white/[0.08] text-xs text-text-muted select-none">
+                                <div className="grow mx-4 text-center px-5 py-1.5 rounded-full bg-[#010307]/50 border border-white/[0.08] text-xs text-text-muted select-none whitespace-nowrap">
                                     app.controle-c.com.br
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-[#25D366] animate-pulse" />
-                                    <span className="text-[10px] text-text-muted font-bold tracking-wide uppercase">Jarvis Conectado</span>
-                                </div>
+                                <div className="w-[52px] flex-shrink-0" />
                             </div>
 
                             {/* Conteúdo do Console Integrado */}
@@ -592,44 +611,38 @@ const App = () => {
                                 <div className="absolute inset-0 bg-gradient-to-tr from-accent-cyan/5 to-transparent pointer-events-none" />
 
                                 {isMobile ? (
-                                    /* ── MOBILE: Poster estático + play manual ──
-                                       Vídeos MP4 de alta resolução esgotam a memória da WebView em
-                                       iOS/Android quando carregados com autoPlay+loop. O usuário
-                                       aciona o vídeo manualmente, evitando crash. */
-                                    mobileVideoPlaying ? (
+                                    /* ── MOBILE: Vídeo único com capa e play manual/automático ao interagir/scrollar ── */
+                                    <div className="relative w-full h-full flex items-center justify-center bg-[#010307]">
                                         <video
-                                            key="demo-lp"
                                             ref={mobileVideoRef}
                                             src="/demo%20lp.mp4"
-                                            autoPlay
                                             muted
                                             loop
                                             playsInline
-                                            preload="none"
-                                            className="w-full h-full object-contain"
+                                            preload="metadata"
+                                            onPlay={() => setMobileVideoPlaying(true)}
+                                            onPause={() => setMobileVideoPlaying(false)}
+                                            className={`w-full h-full object-contain transition-opacity duration-300 ${mobileVideoPlaying ? 'opacity-100' : 'opacity-50'}`}
                                         />
-                                    ) : (
-                                        /* Poster com botão de play */
-                                        <div className="relative w-full h-full flex items-center justify-center bg-[#010307]/80">
-                                            {/* Gradient de fundo que simula o vídeo */}
-                                            <div className="absolute inset-0 bg-gradient-to-br from-[#010307] via-[#030a14] to-[#010307]" />
-                                            {/* Ícone central do cenário */}
-                                            <div className="relative z-10 flex flex-col items-center gap-4">
-                                                <div className="text-5xl">{situations[activeTab].emoji}</div>
-                                                <p className="text-white/60 text-xs text-center px-4 max-w-[200px] leading-relaxed">
-                                                    {situations[activeTab].tabLabel}
-                                                </p>
+                                        {!mobileVideoPlaying && (
+                                            <>
+                                                {/* Gradiente sutil por cima */}
+                                                <div className="absolute inset-0 bg-gradient-to-br from-[#010307]/50 via-transparent to-[#010307]/50 pointer-events-none" />
+                                                {/* Botão de Play */}
                                                 <button
-                                                    onClick={() => setMobileVideoPlaying(true)}
-                                                    className="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-semibold px-5 py-2.5 rounded-full transition-all active:scale-95"
+                                                    onClick={() => {
+                                                        if (mobileVideoRef.current) {
+                                                            mobileVideoRef.current.play();
+                                                        }
+                                                    }}
+                                                    className="absolute z-10 flex items-center justify-center w-14 h-14 rounded-full bg-white/10 hover:bg-white/20 border border-white/30 text-white backdrop-blur-md transition-all active:scale-95 cursor-pointer shadow-2xl"
                                                     aria-label="Reproduzir demonstração"
                                                 >
-                                                    <Play className="w-3.5 h-3.5 fill-white" />
-                                                    Ver demonstração
+                                                    <Play className="w-6 h-6 fill-white ml-0.5" />
                                                 </button>
-                                            </div>
-                                        </div>
-                                    )
+                                            </>
+                                        )}
+                                    </div>
                                 ) : (
                                     /* ── DESKTOP: vídeo completo com autoPlay ── */
                                     <motion.video
@@ -653,32 +666,6 @@ const App = () => {
                             </div>
                         </div>
 
-                        {/* Elementos Flutuantes Dinâmicos Reativos */}
-                        {/* Calendário/Metadado Dinâmico 1 no lado esquerdo */}
-                        <div 
-                            className="absolute -top-6 -left-8 bg-bg-space/95 border border-white/[0.12] rounded-lg p-3.5 shadow-2xl hidden md:flex items-center gap-3 animate-float pointer-events-none transition-all duration-300"
-                            style={{ animationDuration: "7s" }}
-                        >
-                            <div className={`w-8 h-8 rounded-md flex items-center justify-center text-sm ${situations[activeTab].floatingColor}`}>
-                                {situations[activeTab].floatingIcon}
-                            </div>
-                            <div className="text-left">
-                                <p className="text-[9px] text-text-dimmed">{situations[activeTab].floatingTitle}</p>
-                                <p className="text-[11px] text-white font-bold">{situations[activeTab].floatingVal}</p>
-                            </div>
-                        </div>
-
-                        {/* Metadado Dinâmico 2 no lado direito */}
-                        <div 
-                            className="absolute -bottom-6 -right-6 bg-bg-space/95 border border-white/[0.12] rounded-lg p-3.5 shadow-2xl hidden md:flex items-center gap-3 animate-float-delayed pointer-events-none transition-all duration-300"
-                            style={{ animationDuration: "5.5s" }}
-                        >
-                            <div className="w-8 h-8 rounded-md bg-accent-emerald/10 flex items-center justify-center text-accent-emerald text-sm">✓</div>
-                            <div className="text-left">
-                                <p className="text-[9px] text-text-dimmed">WhatsApp Sync</p>
-                                <p className="text-[11px] text-accent-cyan font-bold">100% Sincronizado</p>
-                            </div>
-                        </div>
                     </motion.div>
 
                 </div>
@@ -1272,7 +1259,7 @@ const App = () => {
 
                     {/* MOCKUP MOBILE (SMARTPHONE COM EFEITO 3D ISOMÉTRICO E HOVER DINÂMICO) */}
                     <motion.div 
-                        className="absolute right-4 md:-right-8 bottom-[-40px] w-[32%] z-30 hidden md:block"
+                        className="absolute right-4 md:-right-8 bottom-[-45px] w-[26%] z-30 hidden md:block"
                         initial={{ y: 40, opacity: 0, rotateY: -18, rotateX: 10, rotateZ: 3 }}
                         whileInView={{ y: 0, opacity: 1, rotateY: -18, rotateX: 10, rotateZ: 3 }}
                         whileHover={{ y: -8, rotateY: -12, rotateX: 8, rotateZ: 1 }}
@@ -1284,17 +1271,17 @@ const App = () => {
                         }}
                     >
                         {/* Chassi do Telefone (Phone Frame) */}
-                        <div className="w-full bg-[#010307] rounded-[38px] border-[5px] border-[#1e293b]/90 p-2.5 shadow-[-20px_20px_50px_rgba(0,0,0,0.85)] overflow-hidden relative border-t-white/[0.08] border-l-white/[0.08]">
+                        <div className="w-full bg-[#010307] rounded-[38px] border-[5px] border-[#1e293b]/90 p-2 shadow-[-20px_20px_50px_rgba(0,0,0,0.85)] overflow-hidden relative border-t-white/[0.08] border-l-white/[0.08]">
                             
                             {/* Dynamic Island */}
-                            <div className="absolute top-4 left-1/2 -translate-x-1/2 w-[72px] h-[18px] rounded-full bg-black z-40 border border-white/[0.05] flex items-center justify-end px-2">
+                            <div className="absolute top-4 left-1/2 -translate-x-1/2 w-[60px] h-[15px] rounded-full bg-black z-40 border border-white/[0.05] flex items-center justify-end px-1.5">
                                 <div className="w-1.5 h-1.5 rounded-full bg-[#091530]" />
                             </div>
 
                             {/* Tela do Telefone */}
-                            <div className="rounded-[28px] overflow-hidden bg-[#030712] aspect-[547/767] w-full border border-white/[0.04] relative select-none">
+                            <div className="rounded-[28px] overflow-hidden bg-[#030712] aspect-[1170/2387] w-full border border-white/[0.04] relative select-none">
                                 <img 
-                                    src="/dashboard_mobile.png" 
+                                    src="/tela_mobile.PNG" 
                                     alt="Controle-C Mobile Dashboard" 
                                     className="w-full h-full object-cover"
                                 />
@@ -1303,16 +1290,16 @@ const App = () => {
                     </motion.div>
 
                     {/* MOCKUP COMPANION COMPATÍVEL COM CELULAR (REVELADO APENAS EM MOBILE) */}
-                    <div className="w-[280px] mx-auto mt-8 block md:hidden z-20">
+                    <div className="w-[230px] mx-auto mt-8 block md:hidden z-20">
                         {/* Phone Frame */}
-                        <div className="w-full bg-[#010307] rounded-[36px] border-[4px] border-[#1e293b]/90 p-2 shadow-2xl relative">
+                        <div className="w-full bg-[#010307] rounded-[36px] border-[4px] border-[#1e293b]/90 p-1.5 shadow-2xl relative">
                             
                             {/* Dynamic Island */}
-                            <div className="absolute top-3 left-1/2 -translate-x-1/2 w-16 h-[14px] rounded-full bg-black z-40" />
+                            <div className="absolute top-3.5 left-1/2 -translate-x-1/2 w-14 h-[12px] rounded-full bg-black z-40" />
 
-                            <div className="rounded-[26px] overflow-hidden bg-[#030712] aspect-[547/767] w-full border border-white/[0.04] relative">
+                            <div className="rounded-[26px] overflow-hidden bg-[#030712] aspect-[1170/2387] w-full border border-white/[0.04] relative">
                                 <img 
-                                    src="/dashboard_mobile.png" 
+                                    src="/tela_mobile.PNG" 
                                     alt="Controle-C Mobile Dashboard" 
                                     className="w-full h-full object-cover"
                                 />
@@ -1718,30 +1705,38 @@ const App = () => {
                                 <div className="text-left mb-6 relative z-10">
                                     {billingPeriod === 'annual' ? (
                                         <>
-                                            <p className="text-[10px] text-text-muted/60 line-through font-semibold tracking-wide uppercase mb-1">De R$ 99,90/mês</p>
+                                            <p className="text-[10px] text-text-muted/60 line-through font-semibold tracking-wide uppercase mb-1">
+                                                {isOfferActive ? "De 12x R$ 61,69" : "De R$ 99,90/mês"}
+                                            </p>
                                             <p className="text-[11px] text-text-dimmed font-bold uppercase tracking-wider mb-2.5">Por apenas</p>
                                             
                                             <div className="flex flex-col relative leading-none text-left">
                                                 {/* Giant elegant Serif display block for numbers */}
                                                 <span className="text-lg sm:text-2xl font-bold text-white/70 tracking-normal mb-1">12x</span>
                                                 <span className="text-5xl sm:text-6xl font-black text-white tracking-tighter premium-text-shadow font-display">
-                                                    <span className="text-[26px] sm:text-[34px] font-extrabold tracking-normal mr-1">R$</span>61,69
+                                                    <span className="text-[26px] sm:text-[34px] font-extrabold tracking-normal mr-1">R$</span>{isOfferActive ? "49,35" : "61,69"}
                                                 </span>
                                             </div>
-                                            <p className="text-[10px] text-[#0cf2cd] font-semibold mt-3 select-none uppercase tracking-wider">Ou R$ 600,00 à vista (Economize 37%)</p>
+                                            <p className="text-[10px] text-[#0cf2cd] font-semibold mt-3 select-none uppercase tracking-wider">
+                                                {isOfferActive ? "Ou R$ 480,00 à vista (20% de Desconto Adicional)" : "Ou R$ 600,00 à vista (Economize 37%)"}
+                                            </p>
                                         </>
                                     ) : (
                                         <>
-                                            <p className="text-[10px] text-text-muted/60 line-through font-semibold tracking-wide uppercase mb-1">De R$ 120,00/mês</p>
+                                            <p className="text-[10px] text-text-muted/60 line-through font-semibold tracking-wide uppercase mb-1">
+                                                {isOfferActive ? "De R$ 80,00/mês" : "De R$ 120,00/mês"}
+                                            </p>
                                             <p className="text-[11px] text-text-dimmed font-bold uppercase tracking-wider mb-2.5">Por apenas</p>
                                             
                                             <div className="flex flex-col relative leading-none">
                                                 {/* Giant elegant Serif display block for numbers */}
                                                 <span className="text-5xl sm:text-6xl font-black text-white tracking-tighter premium-text-shadow font-display">
-                                                    <span className="text-[26px] sm:text-[34px] font-extrabold tracking-normal">R$</span> 80,00<span className="text-xs text-text-muted tracking-normal font-medium"> /mês</span>
+                                                    <span className="text-[26px] sm:text-[34px] font-extrabold tracking-normal">R$</span> {isOfferActive ? "64,00" : "80,00"}<span className="text-xs text-text-muted tracking-normal font-medium"> /mês</span>
                                                 </span>
                                             </div>
-                                            <p className="text-[10px] text-[#0cf2cd] font-semibold mt-3 select-none uppercase tracking-wider">Sem fidelidade · Cancele quando quiser</p>
+                                            <p className="text-[10px] text-[#0cf2cd] font-semibold mt-3 select-none uppercase tracking-wider">
+                                                {isOfferActive ? "Sem fidelidade · 20% OFF de R$ 80,00" : "Sem fidelidade · Cancele quando quiser"}
+                                            </p>
                                         </>
                                     )}
                                 </div>
@@ -1766,7 +1761,7 @@ const App = () => {
                                 {/* Botão de Ignição e Disparo Cibernético (CTA Máximo) */}
                                 <div className="relative z-10 w-full mb-6">
                                     <motion.a 
-                                        href={billingPeriod === 'annual' ? "https://pay.zouti.com.br/checkout?product_offer_id=prod_offer_ydek6nmp28nqr06wkqifds" : "https://pay.zouti.com.br/checkout?product_offer_id=prod_offer_ynkqy38q0c15pcg9sgvz1u"}
+                                        href={billingPeriod === 'annual' ? "https://pay.zouti.com.br/checkout?product_offer_id=prod_offer_ynkqy38q0c15pcg9sgvz1u" : "https://pay.zouti.com.br/checkout?product_offer_id=prod_offer_ydek6nmp28nqr06wkqifds"}
                                         whileHover={{ scale: 1.025, y: -1.5 }}
                                         whileTap={{ scale: 0.985 }}
                                         className="animate-shine-btn bg-gradient-to-r from-[#0cf2cd] via-[#00f5d4] to-[#01c7b7] text-black font-black text-[11px] sm:text-xs md:text-[13px] tracking-widest uppercase flex items-center justify-center gap-2.5 rounded-2xl py-4 sm:py-4.5 px-6 w-full text-center transition-all duration-500 shadow-[0_0_20px_rgba(12,242,205,0.25),inset_0_1px_1px_rgba(255,255,255,0.4)] hover:shadow-[0_0_35px_rgba(12,242,205,0.5),inset_0_1px_1px_rgba(255,255,255,0.5)] cursor-pointer border border-white/20 group"
@@ -1958,64 +1953,7 @@ const App = () => {
                 )}
             </AnimatePresence>
 
-            {/* ── POPUP DE BÔNUS EXCLUSIVO TEMPORÁRIO ── */}
-            <AnimatePresence>
-                {showBonusPopup && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 100, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 50, scale: 0.95 }}
-                        transition={{ type: "spring", stiffness: 100, damping: 15 }}
-                        className="fixed bottom-6 right-6 z-50 w-[90%] max-w-[360px] bg-[#0b1329]/95 backdrop-blur-2xl border border-[#0cf2cd]/20 rounded-2xl p-5 shadow-[0_20px_50px_rgba(0,0,0,0.5),0_0_30px_rgba(12,242,205,0.08)] select-none text-left"
-                    >
-                        {/* Botão Fechar X */}
-                        <button 
-                            onClick={() => setShowBonusPopup(false)}
-                            className="absolute top-3.5 right-3.5 text-white/40 hover:text-white transition-colors"
-                        >
-                            <X className="w-4 h-4" />
-                        </button>
 
-                        <div className="flex gap-4">
-                            {/* Ícone com Sparkle e Efeito de Glow */}
-                            <div className="w-12 h-12 rounded-xl bg-[#0cf2cd]/10 border border-[#0cf2cd]/20 flex items-center justify-center text-xl flex-shrink-0 animate-bounce">
-                                🎁
-                            </div>
-                            
-                            <div>
-                                <h4 className="text-sm font-extrabold text-white uppercase tracking-wider mb-1 flex items-center gap-1.5 font-body-jakarta">
-                                    Oferta Especial Limitada
-                                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" />
-                                </h4>
-                                <p className="text-[11px] sm:text-xs text-text-muted leading-relaxed mb-4">
-                                    Assinando o plano <strong>Anual</strong> agora, você receberá uma reunião com o consultor do Controle-C para fazer as configurações necessárias e te instruir!
-                                </p>
-                                
-                                <div className="flex items-center gap-2.5">
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setBillingPeriod('annual');
-                                            setShowBonusPopup(false);
-                                            pricingRef.current?.scrollIntoView({ behavior: 'smooth' });
-                                        }}
-                                        className="bg-[#0cf2cd] hover:bg-[#00f5d4] text-black font-extrabold text-[10.5px] px-4 py-2 rounded-xl transition-all duration-300 shadow-[0_0_15px_rgba(12,242,205,0.2)]"
-                                    >
-                                        Garantir Bônus
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowBonusPopup(false)}
-                                        className="text-text-dimmed hover:text-white text-[10.5px] font-bold transition-colors"
-                                    >
-                                        Talvez depois
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
 
         </div>
     );
